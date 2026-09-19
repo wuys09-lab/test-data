@@ -1,0 +1,264 @@
+2026-09-17 19:19:35 [INFO] [BaiduLoginTest] [playwright-01.py:287] - 
+======================================================================
+[TEST START] 开始执行测试用例: test_open_login_modal_and_switch_tab
+======================================================================
+2026-09-17 19:19:35 [INFO] [BaiduLoginTest] [playwright-01.py:88] - 【页面导航】打开百度搜索主页: https://www.baidu.com
+2026-09-17 19:19:36 [INFO] [BaiduLoginTest] [playwright-01.py:344] - >>> 开始验证正常业务流: 唤起弹窗与Tab切换
+2026-09-17 19:19:36 [INFO] [BaiduLoginTest] [playwright-01.py:180] - 【业务动作】触发点击首页右上角登录按钮
+2026-09-17 19:19:39 [INFO] [BaiduLoginTest] [playwright-01.py:188] - 【业务动作】第 1 次点击成功唤起登录弹窗
+2026-09-17 19:19:39 [INFO] [BaiduLoginTest] [playwright-01.py:259] - 【弹窗状态】登录弹窗当前可见性: True
+2026-09-17 19:19:39 [INFO] [BaiduLoginTest] [playwright-01.py:147] - 【屏幕截图】已成功生成截图附件: '登录弹窗唤起成功截图'
+2026-09-17 19:19:39 [INFO] [BaiduLoginTest] [playwright-01.py:351] - ✔ 校验通过: 登录弹窗成功展示
+2026-09-17 19:19:39 [INFO] [BaiduLoginTest] [playwright-01.py:95] - 【点击元素】切换为账号密码登录Tab (定位器: #TANGRAM__PSP_11__changePwdCodeItem, 强制点击: False)
+2026-09-17 19:19:39 [INFO] [BaiduLoginTest] [playwright-01.py:202] - 【业务动作】已点击切换至账号密码登录Tab
+2026-09-17 19:19:40 [INFO] [BaiduLoginTest] [playwright-01.py:147] - 【屏幕截图】已成功生成截图附件: '账号登录模式呈现状态'
+2026-09-17 19:19:40 [INFO] [BaiduLoginTest] [playwright-01.py:359] - ✔ 校验通过: 账号密码输入控件均完整可见
+2026-09-17 19:19:40 [INFO] [BaiduLoginTest] [playwright-01.py:306] - [TEST END] 测试用例结束: test_open_login_modal_and_switch_tab
+2026-09-17 19:19:40 [INFO] [BaiduLoginTest] [playwright-01.py:287] - 
+======================================================================
+[TEST START] 开始执行测试用例: test_login_with_empty_credentials
+======================================================================
+2026-09-17 19:19:40 [INFO] [BaiduLoginTest] [playwright-01.py:88] - 【页面导航】打开百度搜索主页: https://www.baidu.com
+2026-09-17 19:19:41 [INFO] [BaiduLoginTest] [playwright-01.py:365] - >>> 开始验证异常边界测试: 空账号提单校验
+2026-09-17 19:19:41 [INFO] [BaiduLoginTest] [playwright-01.py:180] - 【业务动作】触发点击首页右上角登录按钮
+2026-09-17 19:19:43 [INFO] [BaiduLoginTest] [playwright-01.py:188] - 【业务动作】第 1 次点击成功唤起登录弹窗
+2026-09-17 19:19:43 [INFO] [BaiduLoginTest] [playwright-01.py:95] - 【点击元素】切换为账号密码登录Tab (定位器: #TANGRAM__PSP_11__changePwdCodeItem, 强制点击: False)
+2026-09-17 19:19:43 [INFO] [BaiduLoginTest] [playwright-01.py:202] - 【业务动作】已点击切换至账号密码登录Tab
+2026-09-17 19:19:43 [INFO] [BaiduLoginTest] [playwright-01.py:219] - 【业务动作】勾选《百度用户协议》复选框
+2026-09-17 19:19:44 [INFO] [BaiduLoginTest] [playwright-01.py:230] - 【业务动作】点击登录提交按钮 (force=False)
+2026-09-17 19:19:44 [INFO] [BaiduLoginTest] [playwright-01.py:95] - 【点击元素】立即登录提交按钮 (定位器: #TANGRAM__PSP_11__submit, 强制点击: False)
+2026-09-17 19:19:44 [INFO] [BaiduLoginTest] [playwright-01.py:147] - 【屏幕截图】已成功生成截图附件: '空账号提交提示截图'
+2026-09-17 19:19:44 [INFO] [BaiduLoginTest] [playwright-01.py:116] - 【提取文本】元素: #TANGRAM__PSP_11__error, 内容: '请您输入手机号/用户名/邮箱'
+2026-09-17 19:19:44 [INFO] [BaiduLoginTest] [playwright-01.py:252] - 【界面提示】捕获到错误提示: '请您输入手机号/用户名/邮箱'
+2026-09-17 19:19:44 [INFO] [BaiduLoginTest] [playwright-01.py:378] - 捕获到的错误信息: '请您输入手机号/用户名/邮箱'
+2026-09-17 19:19:44 [INFO] [BaiduLoginTest] [playwright-01.py:381] - ✔ 校验通过: 空账号提交被准确拦截并提示输入
+2026-09-17 19:19:44 [INFO] [BaiduLoginTest] [playwright-01.py:306] - [TEST END] 测试用例结束: test_login_with_empty_credentials
+2026-09-17 19:19:45 [INFO] [BaiduLoginTest] [playwright-01.py:287] - 
+======================================================================
+[TEST START] 开始执行测试用例: test_login_without_agreeing_protocol
+======================================================================
+2026-09-17 19:19:45 [INFO] [BaiduLoginTest] [playwright-01.py:88] - 【页面导航】打开百度搜索主页: https://www.baidu.com
+2026-09-17 19:19:45 [INFO] [BaiduLoginTest] [playwright-01.py:387] - >>> 开始验证合规拦截测试: 未勾选用户协议
+2026-09-17 19:19:45 [INFO] [BaiduLoginTest] [playwright-01.py:180] - 【业务动作】触发点击首页右上角登录按钮
+2026-09-17 19:19:49 [WARNING] [BaiduLoginTest] [playwright-01.py:191] - 【重试等待】第 1 次点击后弹窗尚未弹出，等待重试...
+2026-09-17 19:19:51 [INFO] [BaiduLoginTest] [playwright-01.py:188] - 【业务动作】第 2 次点击成功唤起登录弹窗
+2026-09-17 19:19:51 [INFO] [BaiduLoginTest] [playwright-01.py:95] - 【点击元素】切换为账号密码登录Tab (定位器: #TANGRAM__PSP_11__changePwdCodeItem, 强制点击: False)
+2026-09-17 19:19:52 [INFO] [BaiduLoginTest] [playwright-01.py:202] - 【业务动作】已点击切换至账号密码登录Tab
+2026-09-17 19:19:52 [INFO] [BaiduLoginTest] [playwright-01.py:105] - 【输入文本】用户名输入框: 'test_compliance_user_2026' (定位器: #TANGRAM__PSP_11__userName)
+2026-09-17 19:19:52 [INFO] [BaiduLoginTest] [playwright-01.py:105] - 【输入文本】密码输入框: '******' (定位器: #TANGRAM__PSP_11__password)
+2026-09-17 19:19:53 [INFO] [BaiduLoginTest] [playwright-01.py:147] - 【屏幕截图】已成功生成截图附件: '未勾选协议状态快照'
+2026-09-17 19:19:53 [INFO] [BaiduLoginTest] [playwright-01.py:135] - 【禁用状态检测】元素: #TANGRAM__PSP_11__submit, 禁用结果: True
+2026-09-17 19:19:53 [INFO] [BaiduLoginTest] [playwright-01.py:401] - ✔ 校验通过: 未同意协议时提交按钮被严格禁用置灰
+2026-09-17 19:19:53 [INFO] [BaiduLoginTest] [playwright-01.py:306] - [TEST END] 测试用例结束: test_login_without_agreeing_protocol
+2026-09-17 19:19:53 [INFO] [BaiduLoginTest] [playwright-01.py:287] - 
+======================================================================
+[TEST START] 开始执行测试用例: test_login_with_invalid_credentials
+======================================================================
+2026-09-17 19:19:53 [INFO] [BaiduLoginTest] [playwright-01.py:88] - 【页面导航】打开百度搜索主页: https://www.baidu.com
+2026-09-17 19:19:54 [INFO] [BaiduLoginTest] [playwright-01.py:407] - >>> 开始验证安全拦截测试: 非法不存在账号密码
+2026-09-17 19:19:54 [INFO] [BaiduLoginTest] [playwright-01.py:180] - 【业务动作】触发点击首页右上角登录按钮
+2026-09-17 19:19:56 [INFO] [BaiduLoginTest] [playwright-01.py:188] - 【业务动作】第 1 次点击成功唤起登录弹窗
+2026-09-17 19:19:56 [INFO] [BaiduLoginTest] [playwright-01.py:95] - 【点击元素】切换为账号密码登录Tab (定位器: #TANGRAM__PSP_11__changePwdCodeItem, 强制点击: False)
+2026-09-17 19:19:56 [INFO] [BaiduLoginTest] [playwright-01.py:202] - 【业务动作】已点击切换至账号密码登录Tab
+2026-09-17 19:19:57 [INFO] [BaiduLoginTest] [playwright-01.py:105] - 【输入文本】用户名输入框: 'non_existent_fake_account_7788@163.com' (定位器: #TANGRAM__PSP_11__userName)
+2026-09-17 19:19:57 [INFO] [BaiduLoginTest] [playwright-01.py:105] - 【输入文本】密码输入框: '******' (定位器: #TANGRAM__PSP_11__password)
+2026-09-17 19:19:57 [INFO] [BaiduLoginTest] [playwright-01.py:219] - 【业务动作】勾选《百度用户协议》复选框
+2026-09-17 19:19:57 [INFO] [BaiduLoginTest] [playwright-01.py:135] - 【禁用状态检测】元素: #TANGRAM__PSP_11__submit, 禁用结果: False
+2026-09-17 19:19:57 [INFO] [BaiduLoginTest] [playwright-01.py:230] - 【业务动作】点击登录提交按钮 (force=False)
+2026-09-17 19:19:57 [INFO] [BaiduLoginTest] [playwright-01.py:95] - 【点击元素】立即登录提交按钮 (定位器: #TANGRAM__PSP_11__submit, 强制点击: False)
+2026-09-17 19:20:00 [INFO] [BaiduLoginTest] [playwright-01.py:147] - 【屏幕截图】已成功生成截图附件: '非法凭证提交后响应界面'
+2026-09-17 19:20:02 [INFO] [BaiduLoginTest] [playwright-01.py:265] - 【登录状态】用户登录态检测: False
+2026-09-17 19:20:02 [INFO] [BaiduLoginTest] [playwright-01.py:259] - 【弹窗状态】登录弹窗当前可见性: True
+2026-09-17 19:20:02 [INFO] [BaiduLoginTest] [playwright-01.py:426] - ✔ 校验通过: 非法账号密码被系统安全阻断，未进入登录态
+2026-09-17 19:20:02 [INFO] [BaiduLoginTest] [playwright-01.py:306] - [TEST END] 测试用例结束: test_login_with_invalid_credentials
+2026-09-17 19:20:02 [INFO] [BaiduLoginTest] [playwright-01.py:287] - 
+======================================================================
+[TEST START] 开始执行测试用例: test_close_login_modal
+======================================================================
+2026-09-17 19:20:02 [INFO] [BaiduLoginTest] [playwright-01.py:88] - 【页面导航】打开百度搜索主页: https://www.baidu.com
+2026-09-17 19:20:04 [INFO] [BaiduLoginTest] [playwright-01.py:432] - >>> 开始验证界面交互测试: 弹窗平滑关闭
+2026-09-17 19:20:04 [INFO] [BaiduLoginTest] [playwright-01.py:180] - 【业务动作】触发点击首页右上角登录按钮
+2026-09-17 19:20:06 [INFO] [BaiduLoginTest] [playwright-01.py:188] - 【业务动作】第 1 次点击成功唤起登录弹窗
+2026-09-17 19:20:06 [INFO] [BaiduLoginTest] [playwright-01.py:259] - 【弹窗状态】登录弹窗当前可见性: True
+2026-09-17 19:20:06 [INFO] [BaiduLoginTest] [playwright-01.py:270] - 【业务动作】关闭登录弹窗
+2026-09-17 19:20:06 [INFO] [BaiduLoginTest] [playwright-01.py:95] - 【点击元素】关闭登录弹窗 (定位器: #TANGRAM__PSP_4__closeBtn, 强制点击: False)
+2026-09-17 19:20:07 [INFO] [BaiduLoginTest] [playwright-01.py:147] - 【屏幕截图】已成功生成截图附件: '关闭弹窗后首页状态'
+2026-09-17 19:20:10 [INFO] [BaiduLoginTest] [playwright-01.py:259] - 【弹窗状态】登录弹窗当前可见性: False
+2026-09-17 19:20:10 [INFO] [BaiduLoginTest] [playwright-01.py:444] - ✔ 校验通过: 弹窗平滑退出，首页恢复可操作
+2026-09-17 19:20:10 [INFO] [BaiduLoginTest] [playwright-01.py:306] - [TEST END] 测试用例结束: test_close_login_modal
+2026-09-17 19:21:05 [INFO] [BaiduLoginTest] [playwright-01.py:287] - 
+======================================================================
+[TEST START] 开始执行测试用例: test_open_login_modal_and_switch_tab
+======================================================================
+2026-09-17 19:21:06 [INFO] [BaiduLoginTest] [playwright-01.py:88] - 【页面导航】打开百度搜索主页: https://www.baidu.com
+2026-09-17 19:21:08 [INFO] [BaiduLoginTest] [playwright-01.py:344] - >>> 开始验证正常业务流: 唤起弹窗与Tab切换
+2026-09-17 19:21:08 [INFO] [BaiduLoginTest] [playwright-01.py:180] - 【业务动作】触发点击首页右上角登录按钮
+2026-09-17 19:21:10 [INFO] [BaiduLoginTest] [playwright-01.py:188] - 【业务动作】第 1 次点击成功唤起登录弹窗
+2026-09-17 19:21:10 [INFO] [BaiduLoginTest] [playwright-01.py:259] - 【弹窗状态】登录弹窗当前可见性: True
+2026-09-17 19:21:10 [INFO] [BaiduLoginTest] [playwright-01.py:147] - 【屏幕截图】已成功生成截图附件: '登录弹窗唤起成功截图'
+2026-09-17 19:21:10 [INFO] [BaiduLoginTest] [playwright-01.py:351] - ✔ 校验通过: 登录弹窗成功展示
+2026-09-17 19:21:10 [INFO] [BaiduLoginTest] [playwright-01.py:95] - 【点击元素】切换为账号密码登录Tab (定位器: #TANGRAM__PSP_11__changePwdCodeItem, 强制点击: False)
+2026-09-17 19:21:10 [INFO] [BaiduLoginTest] [playwright-01.py:202] - 【业务动作】已点击切换至账号密码登录Tab
+2026-09-17 19:21:11 [INFO] [BaiduLoginTest] [playwright-01.py:147] - 【屏幕截图】已成功生成截图附件: '账号登录模式呈现状态'
+2026-09-17 19:21:11 [INFO] [BaiduLoginTest] [playwright-01.py:359] - ✔ 校验通过: 账号密码输入控件均完整可见
+2026-09-17 19:21:11 [INFO] [BaiduLoginTest] [playwright-01.py:306] - [TEST END] 测试用例结束: test_open_login_modal_and_switch_tab
+2026-09-17 19:21:11 [INFO] [BaiduLoginTest] [playwright-01.py:287] - 
+======================================================================
+[TEST START] 开始执行测试用例: test_login_with_empty_credentials
+======================================================================
+2026-09-17 19:21:11 [INFO] [BaiduLoginTest] [playwright-01.py:88] - 【页面导航】打开百度搜索主页: https://www.baidu.com
+2026-09-17 19:21:12 [INFO] [BaiduLoginTest] [playwright-01.py:365] - >>> 开始验证异常边界测试: 空账号提单校验
+2026-09-17 19:21:12 [INFO] [BaiduLoginTest] [playwright-01.py:180] - 【业务动作】触发点击首页右上角登录按钮
+2026-09-17 19:21:13 [INFO] [BaiduLoginTest] [playwright-01.py:188] - 【业务动作】第 1 次点击成功唤起登录弹窗
+2026-09-17 19:21:13 [INFO] [BaiduLoginTest] [playwright-01.py:95] - 【点击元素】切换为账号密码登录Tab (定位器: #TANGRAM__PSP_11__changePwdCodeItem, 强制点击: False)
+2026-09-17 19:21:13 [INFO] [BaiduLoginTest] [playwright-01.py:202] - 【业务动作】已点击切换至账号密码登录Tab
+2026-09-17 19:21:14 [INFO] [BaiduLoginTest] [playwright-01.py:219] - 【业务动作】勾选《百度用户协议》复选框
+2026-09-17 19:21:14 [INFO] [BaiduLoginTest] [playwright-01.py:230] - 【业务动作】点击登录提交按钮 (force=False)
+2026-09-17 19:21:14 [INFO] [BaiduLoginTest] [playwright-01.py:95] - 【点击元素】立即登录提交按钮 (定位器: #TANGRAM__PSP_11__submit, 强制点击: False)
+2026-09-17 19:21:15 [INFO] [BaiduLoginTest] [playwright-01.py:147] - 【屏幕截图】已成功生成截图附件: '空账号提交提示截图'
+2026-09-17 19:21:15 [INFO] [BaiduLoginTest] [playwright-01.py:116] - 【提取文本】元素: #TANGRAM__PSP_11__error, 内容: '请您输入手机号/用户名/邮箱'
+2026-09-17 19:21:15 [INFO] [BaiduLoginTest] [playwright-01.py:252] - 【界面提示】捕获到错误提示: '请您输入手机号/用户名/邮箱'
+2026-09-17 19:21:15 [INFO] [BaiduLoginTest] [playwright-01.py:378] - 捕获到的错误信息: '请您输入手机号/用户名/邮箱'
+2026-09-17 19:21:15 [INFO] [BaiduLoginTest] [playwright-01.py:381] - ✔ 校验通过: 空账号提交被准确拦截并提示输入
+2026-09-17 19:21:15 [INFO] [BaiduLoginTest] [playwright-01.py:306] - [TEST END] 测试用例结束: test_login_with_empty_credentials
+2026-09-17 19:21:15 [INFO] [BaiduLoginTest] [playwright-01.py:287] - 
+======================================================================
+[TEST START] 开始执行测试用例: test_login_without_agreeing_protocol
+======================================================================
+2026-09-17 19:21:15 [INFO] [BaiduLoginTest] [playwright-01.py:88] - 【页面导航】打开百度搜索主页: https://www.baidu.com
+2026-09-17 19:21:16 [INFO] [BaiduLoginTest] [playwright-01.py:387] - >>> 开始验证合规拦截测试: 未勾选用户协议
+2026-09-17 19:21:16 [INFO] [BaiduLoginTest] [playwright-01.py:180] - 【业务动作】触发点击首页右上角登录按钮
+2026-09-17 19:21:19 [WARNING] [BaiduLoginTest] [playwright-01.py:191] - 【重试等待】第 1 次点击后弹窗尚未弹出，等待重试...
+2026-09-17 19:21:22 [INFO] [BaiduLoginTest] [playwright-01.py:188] - 【业务动作】第 2 次点击成功唤起登录弹窗
+2026-09-17 19:21:22 [INFO] [BaiduLoginTest] [playwright-01.py:95] - 【点击元素】切换为账号密码登录Tab (定位器: #TANGRAM__PSP_11__changePwdCodeItem, 强制点击: False)
+2026-09-17 19:21:22 [INFO] [BaiduLoginTest] [playwright-01.py:202] - 【业务动作】已点击切换至账号密码登录Tab
+2026-09-17 19:21:23 [INFO] [BaiduLoginTest] [playwright-01.py:105] - 【输入文本】用户名输入框: 'test_compliance_user_2026' (定位器: #TANGRAM__PSP_11__userName)
+2026-09-17 19:21:23 [INFO] [BaiduLoginTest] [playwright-01.py:105] - 【输入文本】密码输入框: '******' (定位器: #TANGRAM__PSP_11__password)
+2026-09-17 19:21:23 [INFO] [BaiduLoginTest] [playwright-01.py:147] - 【屏幕截图】已成功生成截图附件: '未勾选协议状态快照'
+2026-09-17 19:21:23 [INFO] [BaiduLoginTest] [playwright-01.py:135] - 【禁用状态检测】元素: #TANGRAM__PSP_11__submit, 禁用结果: True
+2026-09-17 19:21:23 [INFO] [BaiduLoginTest] [playwright-01.py:401] - ✔ 校验通过: 未同意协议时提交按钮被严格禁用置灰
+2026-09-17 19:21:23 [INFO] [BaiduLoginTest] [playwright-01.py:306] - [TEST END] 测试用例结束: test_login_without_agreeing_protocol
+2026-09-17 19:21:23 [INFO] [BaiduLoginTest] [playwright-01.py:287] - 
+======================================================================
+[TEST START] 开始执行测试用例: test_login_with_invalid_credentials
+======================================================================
+2026-09-17 19:21:23 [INFO] [BaiduLoginTest] [playwright-01.py:88] - 【页面导航】打开百度搜索主页: https://www.baidu.com
+2026-09-17 19:21:24 [INFO] [BaiduLoginTest] [playwright-01.py:407] - >>> 开始验证安全拦截测试: 非法不存在账号密码
+2026-09-17 19:21:24 [INFO] [BaiduLoginTest] [playwright-01.py:180] - 【业务动作】触发点击首页右上角登录按钮
+2026-09-17 19:21:25 [INFO] [BaiduLoginTest] [playwright-01.py:188] - 【业务动作】第 1 次点击成功唤起登录弹窗
+2026-09-17 19:21:25 [INFO] [BaiduLoginTest] [playwright-01.py:95] - 【点击元素】切换为账号密码登录Tab (定位器: #TANGRAM__PSP_11__changePwdCodeItem, 强制点击: False)
+2026-09-17 19:21:25 [INFO] [BaiduLoginTest] [playwright-01.py:202] - 【业务动作】已点击切换至账号密码登录Tab
+2026-09-17 19:21:26 [INFO] [BaiduLoginTest] [playwright-01.py:105] - 【输入文本】用户名输入框: 'non_existent_fake_account_7788@163.com' (定位器: #TANGRAM__PSP_11__userName)
+2026-09-17 19:21:26 [INFO] [BaiduLoginTest] [playwright-01.py:105] - 【输入文本】密码输入框: '******' (定位器: #TANGRAM__PSP_11__password)
+2026-09-17 19:21:26 [INFO] [BaiduLoginTest] [playwright-01.py:219] - 【业务动作】勾选《百度用户协议》复选框
+2026-09-17 19:21:26 [INFO] [BaiduLoginTest] [playwright-01.py:135] - 【禁用状态检测】元素: #TANGRAM__PSP_11__submit, 禁用结果: False
+2026-09-17 19:21:26 [INFO] [BaiduLoginTest] [playwright-01.py:230] - 【业务动作】点击登录提交按钮 (force=False)
+2026-09-17 19:21:26 [INFO] [BaiduLoginTest] [playwright-01.py:95] - 【点击元素】立即登录提交按钮 (定位器: #TANGRAM__PSP_11__submit, 强制点击: False)
+2026-09-17 19:21:29 [INFO] [BaiduLoginTest] [playwright-01.py:147] - 【屏幕截图】已成功生成截图附件: '非法凭证提交后响应界面'
+2026-09-17 19:21:31 [INFO] [BaiduLoginTest] [playwright-01.py:265] - 【登录状态】用户登录态检测: False
+2026-09-17 19:21:31 [INFO] [BaiduLoginTest] [playwright-01.py:259] - 【弹窗状态】登录弹窗当前可见性: True
+2026-09-17 19:21:31 [INFO] [BaiduLoginTest] [playwright-01.py:426] - ✔ 校验通过: 非法账号密码被系统安全阻断，未进入登录态
+2026-09-17 19:21:31 [INFO] [BaiduLoginTest] [playwright-01.py:306] - [TEST END] 测试用例结束: test_login_with_invalid_credentials
+2026-09-17 19:21:31 [INFO] [BaiduLoginTest] [playwright-01.py:287] - 
+======================================================================
+[TEST START] 开始执行测试用例: test_close_login_modal
+======================================================================
+2026-09-17 19:21:31 [INFO] [BaiduLoginTest] [playwright-01.py:88] - 【页面导航】打开百度搜索主页: https://www.baidu.com
+2026-09-17 19:21:32 [INFO] [BaiduLoginTest] [playwright-01.py:432] - >>> 开始验证界面交互测试: 弹窗平滑关闭
+2026-09-17 19:21:32 [INFO] [BaiduLoginTest] [playwright-01.py:180] - 【业务动作】触发点击首页右上角登录按钮
+2026-09-17 19:21:33 [INFO] [BaiduLoginTest] [playwright-01.py:188] - 【业务动作】第 1 次点击成功唤起登录弹窗
+2026-09-17 19:21:33 [INFO] [BaiduLoginTest] [playwright-01.py:259] - 【弹窗状态】登录弹窗当前可见性: True
+2026-09-17 19:21:33 [INFO] [BaiduLoginTest] [playwright-01.py:270] - 【业务动作】关闭登录弹窗
+2026-09-17 19:21:33 [INFO] [BaiduLoginTest] [playwright-01.py:95] - 【点击元素】关闭登录弹窗 (定位器: #TANGRAM__PSP_4__closeBtn, 强制点击: False)
+2026-09-17 19:21:34 [INFO] [BaiduLoginTest] [playwright-01.py:147] - 【屏幕截图】已成功生成截图附件: '关闭弹窗后首页状态'
+2026-09-17 19:21:37 [INFO] [BaiduLoginTest] [playwright-01.py:259] - 【弹窗状态】登录弹窗当前可见性: False
+2026-09-17 19:21:37 [INFO] [BaiduLoginTest] [playwright-01.py:444] - ✔ 校验通过: 弹窗平滑退出，首页恢复可操作
+2026-09-17 19:21:37 [INFO] [BaiduLoginTest] [playwright-01.py:306] - [TEST END] 测试用例结束: test_close_login_modal
+2026-09-17 19:21:56 [INFO] [BaiduLoginTest] [playwright-01.py:287] - 
+======================================================================
+[TEST START] 开始执行测试用例: test_open_login_modal_and_switch_tab
+======================================================================
+2026-09-17 19:21:56 [INFO] [BaiduLoginTest] [playwright-01.py:88] - 【页面导航】打开百度搜索主页: https://www.baidu.com
+2026-09-17 19:21:57 [INFO] [BaiduLoginTest] [playwright-01.py:344] - >>> 开始验证正常业务流: 唤起弹窗与Tab切换
+2026-09-17 19:21:57 [INFO] [BaiduLoginTest] [playwright-01.py:180] - 【业务动作】触发点击首页右上角登录按钮
+2026-09-17 19:21:59 [INFO] [BaiduLoginTest] [playwright-01.py:188] - 【业务动作】第 1 次点击成功唤起登录弹窗
+2026-09-17 19:21:59 [INFO] [BaiduLoginTest] [playwright-01.py:259] - 【弹窗状态】登录弹窗当前可见性: True
+2026-09-17 19:21:59 [INFO] [BaiduLoginTest] [playwright-01.py:147] - 【屏幕截图】已成功生成截图附件: '登录弹窗唤起成功截图'
+2026-09-17 19:21:59 [INFO] [BaiduLoginTest] [playwright-01.py:351] - ✔ 校验通过: 登录弹窗成功展示
+2026-09-17 19:21:59 [INFO] [BaiduLoginTest] [playwright-01.py:95] - 【点击元素】切换为账号密码登录Tab (定位器: #TANGRAM__PSP_11__changePwdCodeItem, 强制点击: False)
+2026-09-17 19:21:59 [INFO] [BaiduLoginTest] [playwright-01.py:202] - 【业务动作】已点击切换至账号密码登录Tab
+2026-09-17 19:22:00 [INFO] [BaiduLoginTest] [playwright-01.py:147] - 【屏幕截图】已成功生成截图附件: '账号登录模式呈现状态'
+2026-09-17 19:22:00 [INFO] [BaiduLoginTest] [playwright-01.py:359] - ✔ 校验通过: 账号密码输入控件均完整可见
+2026-09-17 19:22:00 [INFO] [BaiduLoginTest] [playwright-01.py:306] - [TEST END] 测试用例结束: test_open_login_modal_and_switch_tab
+2026-09-17 19:22:00 [INFO] [BaiduLoginTest] [playwright-01.py:287] - 
+======================================================================
+[TEST START] 开始执行测试用例: test_login_with_empty_credentials
+======================================================================
+2026-09-17 19:22:00 [INFO] [BaiduLoginTest] [playwright-01.py:88] - 【页面导航】打开百度搜索主页: https://www.baidu.com
+2026-09-17 19:22:00 [INFO] [BaiduLoginTest] [playwright-01.py:365] - >>> 开始验证异常边界测试: 空账号提单校验
+2026-09-17 19:22:00 [INFO] [BaiduLoginTest] [playwright-01.py:180] - 【业务动作】触发点击首页右上角登录按钮
+2026-09-17 19:22:10 [INFO] [BaiduLoginTest] [playwright-01.py:306] - [TEST END] 测试用例结束: test_login_with_empty_credentials
+2026-09-17 19:22:10 [INFO] [BaiduLoginTest] [playwright-01.py:287] - 
+======================================================================
+[TEST START] 开始执行测试用例: test_login_without_agreeing_protocol
+======================================================================
+2026-09-17 19:22:11 [INFO] [BaiduLoginTest] [playwright-01.py:88] - 【页面导航】打开百度搜索主页: https://www.baidu.com
+2026-09-17 19:22:11 [INFO] [BaiduLoginTest] [playwright-01.py:387] - >>> 开始验证合规拦截测试: 未勾选用户协议
+2026-09-17 19:22:11 [INFO] [BaiduLoginTest] [playwright-01.py:180] - 【业务动作】触发点击首页右上角登录按钮
+2026-09-17 19:22:21 [INFO] [BaiduLoginTest] [playwright-01.py:306] - [TEST END] 测试用例结束: test_login_without_agreeing_protocol
+2026-09-17 19:22:21 [INFO] [BaiduLoginTest] [playwright-01.py:287] - 
+======================================================================
+[TEST START] 开始执行测试用例: test_login_with_invalid_credentials
+======================================================================
+2026-09-17 19:22:21 [INFO] [BaiduLoginTest] [playwright-01.py:88] - 【页面导航】打开百度搜索主页: https://www.baidu.com
+2026-09-17 19:22:21 [INFO] [BaiduLoginTest] [playwright-01.py:407] - >>> 开始验证安全拦截测试: 非法不存在账号密码
+2026-09-17 19:22:21 [INFO] [BaiduLoginTest] [playwright-01.py:180] - 【业务动作】触发点击首页右上角登录按钮
+2026-09-17 19:22:31 [INFO] [BaiduLoginTest] [playwright-01.py:306] - [TEST END] 测试用例结束: test_login_with_invalid_credentials
+2026-09-17 19:22:31 [INFO] [BaiduLoginTest] [playwright-01.py:287] - 
+======================================================================
+[TEST START] 开始执行测试用例: test_close_login_modal
+======================================================================
+2026-09-17 19:22:32 [INFO] [BaiduLoginTest] [playwright-01.py:88] - 【页面导航】打开百度搜索主页: https://www.baidu.com
+2026-09-17 19:22:32 [INFO] [BaiduLoginTest] [playwright-01.py:432] - >>> 开始验证界面交互测试: 弹窗平滑关闭
+2026-09-17 19:22:32 [INFO] [BaiduLoginTest] [playwright-01.py:180] - 【业务动作】触发点击首页右上角登录按钮
+2026-09-17 19:22:42 [INFO] [BaiduLoginTest] [playwright-01.py:306] - [TEST END] 测试用例结束: test_close_login_modal
+2026-09-17 19:29:06 [INFO] [BaiduLoginTest] [playwright-01.py:287] - 
+======================================================================
+[TEST START] 开始执行测试用例: test_open_login_modal_and_switch_tab
+======================================================================
+2026-09-17 19:29:07 [INFO] [BaiduLoginTest] [playwright-01.py:88] - 【页面导航】打开百度搜索主页: https://www.baidu.com
+2026-09-17 19:29:07 [INFO] [BaiduLoginTest] [playwright-01.py:344] - >>> 开始验证正常业务流: 唤起弹窗与Tab切换
+2026-09-17 19:29:07 [INFO] [BaiduLoginTest] [playwright-01.py:180] - 【业务动作】触发点击首页右上角登录按钮
+2026-09-17 19:29:17 [INFO] [BaiduLoginTest] [playwright-01.py:306] - [TEST END] 测试用例结束: test_open_login_modal_and_switch_tab
+2026-09-17 19:29:18 [INFO] [BaiduLoginTest] [playwright-01.py:287] - 
+======================================================================
+[TEST START] 开始执行测试用例: test_login_with_empty_credentials
+======================================================================
+2026-09-17 19:29:18 [INFO] [BaiduLoginTest] [playwright-01.py:88] - 【页面导航】打开百度搜索主页: https://www.baidu.com
+2026-09-17 19:29:18 [INFO] [BaiduLoginTest] [playwright-01.py:365] - >>> 开始验证异常边界测试: 空账号提单校验
+2026-09-17 19:29:18 [INFO] [BaiduLoginTest] [playwright-01.py:180] - 【业务动作】触发点击首页右上角登录按钮
+2026-09-17 19:29:28 [INFO] [BaiduLoginTest] [playwright-01.py:306] - [TEST END] 测试用例结束: test_login_with_empty_credentials
+2026-09-17 19:29:28 [INFO] [BaiduLoginTest] [playwright-01.py:287] - 
+======================================================================
+[TEST START] 开始执行测试用例: test_login_without_agreeing_protocol
+======================================================================
+2026-09-17 19:29:28 [INFO] [BaiduLoginTest] [playwright-01.py:88] - 【页面导航】打开百度搜索主页: https://www.baidu.com
+2026-09-17 19:29:29 [INFO] [BaiduLoginTest] [playwright-01.py:387] - >>> 开始验证合规拦截测试: 未勾选用户协议
+2026-09-17 19:29:29 [INFO] [BaiduLoginTest] [playwright-01.py:180] - 【业务动作】触发点击首页右上角登录按钮
+2026-09-17 19:29:39 [INFO] [BaiduLoginTest] [playwright-01.py:306] - [TEST END] 测试用例结束: test_login_without_agreeing_protocol
+2026-09-17 19:29:39 [INFO] [BaiduLoginTest] [playwright-01.py:287] - 
+======================================================================
+[TEST START] 开始执行测试用例: test_login_with_invalid_credentials
+======================================================================
+2026-09-17 19:29:39 [INFO] [BaiduLoginTest] [playwright-01.py:88] - 【页面导航】打开百度搜索主页: https://www.baidu.com
+2026-09-17 19:29:39 [INFO] [BaiduLoginTest] [playwright-01.py:407] - >>> 开始验证安全拦截测试: 非法不存在账号密码
+2026-09-17 19:29:39 [INFO] [BaiduLoginTest] [playwright-01.py:180] - 【业务动作】触发点击首页右上角登录按钮
+2026-09-17 19:29:49 [INFO] [BaiduLoginTest] [playwright-01.py:306] - [TEST END] 测试用例结束: test_login_with_invalid_credentials
+2026-09-17 19:29:49 [INFO] [BaiduLoginTest] [playwright-01.py:287] - 
+======================================================================
+[TEST START] 开始执行测试用例: test_close_login_modal
+======================================================================
+2026-09-17 19:29:50 [INFO] [BaiduLoginTest] [playwright-01.py:88] - 【页面导航】打开百度搜索主页: https://www.baidu.com
+2026-09-17 19:29:50 [INFO] [BaiduLoginTest] [playwright-01.py:432] - >>> 开始验证界面交互测试: 弹窗平滑关闭
+2026-09-17 19:29:50 [INFO] [BaiduLoginTest] [playwright-01.py:180] - 【业务动作】触发点击首页右上角登录按钮
+2026-09-17 19:30:00 [INFO] [BaiduLoginTest] [playwright-01.py:306] - [TEST END] 测试用例结束: test_close_login_modal

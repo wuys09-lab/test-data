@@ -1,0 +1,2116 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智慧餐饮订单管理与 BI 结算对账看板 (Dining BI Dashboard)</title>
+    <!-- 引入 Chart.js 本地离线库（支持脱机使用），并提供 CDN 兜底 -->
+    <script src="./lib/chart.umd.min.js"></script>
+    <script>
+        if (typeof Chart === 'undefined') {
+            document.write('<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"><\/script>');
+        }
+    </script>
+    <style>
+        :root {
+            --bg-primary: #0b0f19;
+            --bg-secondary: #111827;
+            --bg-card: rgba(17, 24, 39, 0.85);
+            --bg-hover: #1f2937;
+            --border-color: rgba(55, 65, 81, 0.6);
+            --border-glow: rgba(59, 130, 246, 0.3);
+            --text-primary: #f9fafb;
+            --text-secondary: #9ca3af;
+            --text-muted: #6b7280;
+            --accent-blue: #3b82f6;
+            --accent-green: #10b981;
+            --accent-amber: #f59e0b;
+            --accent-red: #ef4444;
+            --accent-purple: #8b5cf6;
+            --accent-cyan: #06b6d4;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+            background-image:
+                radial-gradient(at 0% 0%, rgba(59, 130, 246, 0.08) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(139, 92, 246, 0.08) 0px, transparent 50%);
+        }
+
+        /* 顶部导航栏 */
+        header {
+            background: rgba(17, 24, 39, 0.9);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border-color);
+            padding: 16px 32px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .brand-logo {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+        }
+
+        .brand-title h1 {
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            background: linear-gradient(to right, #fff, #93c5fd);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .brand-title p {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .store-badge {
+            background: rgba(59, 130, 246, 0.15);
+            border: 1px solid var(--border-glow);
+            color: #93c5fd;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            color: #fff;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+        }
+
+        .btn-primary:hover {
+            opacity: 0.95;
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: var(--bg-hover);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(55, 65, 81, 0.8);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: #fff;
+        }
+
+        /* 主体布局 */
+        main {
+            flex: 1;
+            padding: 24px 32px;
+            max-width: 1680px;
+            width: 100%;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        /* 核心指标 KPI 仪表盘 */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 16px;
+        }
+
+        .kpi-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+            transition: transform 0.2s, border-color 0.2s;
+        }
+
+        .kpi-card:hover {
+            border-color: var(--border-glow);
+            transform: translateY(-2px);
+        }
+
+        .kpi-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--kpi-color, #3b82f6);
+        }
+
+        .kpi-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            color: var(--text-secondary);
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 12px;
+        }
+
+        .kpi-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--kpi-color, #fff);
+        }
+
+        .kpi-value {
+            font-size: 28px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            margin-bottom: 8px;
+            font-feature-settings: "tnum";
+        }
+
+        .kpi-sub {
+            font-size: 12px;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .badge-positive {
+            color: #34d399;
+            background: rgba(16, 185, 129, 0.15);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+
+        /* 标签页切换 */
+        .tabs-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 12px;
+            margin-top: 8px;
+        }
+
+        .tab-list {
+            display: flex;
+            gap: 8px;
+        }
+
+        .tab-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            padding: 8px 18px;
+            font-size: 14px;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .tab-btn.active {
+            background: var(--bg-hover);
+            color: #fff;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border-color);
+        }
+
+        .tab-btn:hover:not(.active) {
+            color: var(--text-primary);
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        /* 过滤控制栏 */
+        .filter-bar {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 16px 20px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .search-box {
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 8px 14px;
+            color: #fff;
+            font-size: 13px;
+            width: 240px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .search-box:focus {
+            border-color: var(--accent-blue);
+        }
+
+        select.filter-select {
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 8px 14px;
+            color: #fff;
+            font-size: 13px;
+            outline: none;
+            cursor: pointer;
+        }
+
+        /* 订单表格 */
+        .table-container {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            text-align: left;
+        }
+
+        thead {
+            background: rgba(31, 41, 55, 0.6);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        th {
+            padding: 14px 18px;
+            color: var(--text-secondary);
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 12px;
+            letter-spacing: 0.5px;
+        }
+
+        td {
+            padding: 14px 18px;
+            border-bottom: 1px solid rgba(55, 65, 81, 0.4);
+            color: var(--text-primary);
+            vertical-align: middle;
+        }
+
+        tbody tr {
+            transition: background 0.15s ease;
+        }
+
+        tbody tr:hover {
+            background: rgba(55, 65, 81, 0.25);
+        }
+
+        /* 状态胶囊标签 */
+        .status-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            border-radius: 16px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+        }
+
+        .status-pending {
+            background: rgba(245, 158, 11, 0.15);
+            color: #fbbf24;
+            border: 1px solid rgba(245, 158, 11, 0.3);
+        }
+
+        .status-pending .status-dot {
+            background: #fbbf24;
+        }
+
+        .status-paid {
+            background: rgba(59, 130, 246, 0.15);
+            color: #60a5fa;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+
+        .status-paid .status-dot {
+            background: #60a5fa;
+        }
+
+        .status-printed {
+            background: rgba(139, 92, 246, 0.15);
+            color: #c084fc;
+            border: 1px solid rgba(139, 92, 246, 0.3);
+        }
+
+        .status-printed .status-dot {
+            background: #c084fc;
+        }
+
+        .status-completed {
+            background: rgba(16, 185, 129, 0.15);
+            color: #34d399;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .status-completed .status-dot {
+            background: #34d399;
+        }
+
+        .status-cancelled {
+            background: rgba(239, 68, 68, 0.15);
+            color: #f87171;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .status-cancelled .status-dot {
+            background: #f87171;
+        }
+
+        /* 金额样式 */
+        .amount-highlight {
+            font-weight: 700;
+            font-feature-settings: "tnum";
+            color: #fff;
+        }
+
+        .amount-formula {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        /* BI 图表区 */
+        .chart-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        .chart-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            display: flex;
+            flex-direction: column;
+            min-height: 360px;
+        }
+
+        .chart-card-title {
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .chart-wrapper {
+            flex: 1;
+            position: relative;
+        }
+
+        /* BI 对账核验大卡片 */
+        .audit-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 24px;
+        }
+
+        .audit-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .audit-status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 700;
+            background: rgba(16, 185, 129, 0.15);
+            border: 1px solid rgba(16, 185, 129, 0.4);
+            color: #34d399;
+        }
+
+        .audit-metric-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .audit-box {
+            background: rgba(0, 0, 0, 0.25);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 16px;
+        }
+
+        .audit-box-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+        }
+
+        .audit-box-val {
+            font-size: 20px;
+            font-weight: 800;
+            font-feature-settings: "tnum";
+        }
+
+        /* 模态框 / 抽屉 */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(6px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            width: 90%;
+            max-width: 680px;
+            max-height: 85vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+            padding: 24px;
+            position: relative;
+        }
+
+        .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 16px;
+            margin-bottom: 20px;
+        }
+
+        .modal-close {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            font-size: 22px;
+            cursor: pointer;
+        }
+
+        .modal-close:hover {
+            color: #fff;
+        }
+
+        .order-detail-summary {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 16px;
+            margin-top: 16px;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            font-size: 13px;
+        }
+
+        .settle-calc-box {
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px dashed rgba(59, 130, 246, 0.4);
+            border-radius: 10px;
+            padding: 16px;
+            margin-top: 16px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- 顶部导航 -->
+    <header>
+        <div class="brand">
+            <div class="brand-logo">🍽️</div>
+            <div class="brand-title">
+                <h1>智慧餐饮中台 · 订单与 BI 结算看板</h1>
+                <p>全状态生命周期流转、金额核销快照与多维指标对账系统</p>
+            </div>
+        </div>
+        <div class="header-actions">
+            <div class="store-badge">
+                <span>📍</span>
+                <span id="currentStoreName">智慧餐饮旗舰店 (store_888)</span>
+            </div>
+            <button class="btn btn-secondary" onclick="openCreateOrderModal()">
+                <span>➕</span> 快速模拟下单
+            </button>
+            <button class="btn btn-primary" onclick="runBIAudit()">
+                <span>⚡</span> 一键对账核验
+            </button>
+        </div>
+    </header>
+
+    <main>
+        <!-- KPI 指标概览 -->
+        <section class="kpi-grid">
+            <div class="kpi-card" style="--kpi-color: #3b82f6;">
+                <div class="kpi-header">
+                    <span>累计实收营业额 (GMV)</span>
+                    <div class="kpi-icon">💰</div>
+                </div>
+                <div class="kpi-value" id="kpiGmv">￥0.00</div>
+                <div class="kpi-sub">
+                    <span class="badge-positive">核销一致</span>
+                    <span>已结算订单真实入账汇总</span>
+                </div>
+            </div>
+
+            <div class="kpi-card" style="--kpi-color: #10b981;">
+                <div class="kpi-header">
+                    <span>有效出单总量 (已付/已出纸)</span>
+                    <div class="kpi-icon">📜</div>
+                </div>
+                <div class="kpi-value" id="kpiValidOrders">0</div>
+                <div class="kpi-sub">
+                    <span id="kpiCompletionRate">完成率 100%</span>
+                </div>
+            </div>
+
+            <div class="kpi-card" style="--kpi-color: #f59e0b;">
+                <div class="kpi-header">
+                    <span>待支付与流转中</span>
+                    <div class="kpi-icon">⏳</div>
+                </div>
+                <div class="kpi-value" id="kpiPendingCount">0</div>
+                <div class="kpi-sub">
+                    <span>含待支付锁定与厨打中</span>
+                </div>
+            </div>
+
+            <div class="kpi-card" style="--kpi-color: #8b5cf6;">
+                <div class="kpi-header">
+                    <span>平均客单价 (AOV)</span>
+                    <div class="kpi-icon">📊</div>
+                </div>
+                <div class="kpi-value" id="kpiAov">￥0.00</div>
+                <div class="kpi-sub">
+                    <span>每有效单实付贡献</span>
+                </div>
+            </div>
+
+            <div class="kpi-card" style="--kpi-color: #ec4899;">
+                <div class="kpi-header">
+                    <span>营销优惠券减免总额</span>
+                    <div class="kpi-icon">🎟️</div>
+                </div>
+                <div class="kpi-value" id="kpiDiscounts">￥0.00</div>
+                <div class="kpi-sub">
+                    <span>商家营销让利补贴合计</span>
+                </div>
+            </div>
+
+            <div class="kpi-card" style="--kpi-color: #ef4444;">
+                <div class="kpi-header">
+                    <span>超时关单 / 取消总数</span>
+                    <div class="kpi-icon">❌</div>
+                </div>
+                <div class="kpi-value" id="kpiCancelledCount">0</div>
+                <div class="kpi-sub">
+                    <span id="kpiCancelRatio">取消率 0%</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- 标签页导航 -->
+        <div class="tabs-container">
+            <div class="tab-list">
+                <button class="tab-btn active" onclick="switchTab('orders')">📋 订单明细管理</button>
+                <button class="tab-btn" onclick="switchTab('bi')">📈 BI 多维报表看板</button>
+                <button class="tab-btn" onclick="switchTab('audit')">⚖️ 财务结算与自动化对账</button>
+                <button class="tab-btn" onclick="switchTab('db')">🗄️ 数据库与 SQL 查询</button>
+            </div>
+            <div>
+                <span style="font-size: 12px; color: var(--text-muted);" id="dataRefreshTimer">数据已同步 · 共 80
+                    笔持久化订单</span>
+            </div>
+        </div>
+
+        <!-- 页面 1: 订单列表管理 -->
+        <div id="tab-orders" class="tab-content">
+            <div class="filter-bar" style="margin-bottom: 16px;">
+                <div class="filter-group">
+                    <input type="text" id="filterKeyword" class="search-box" placeholder="搜索订单号 / 桌台号..."
+                        oninput="applyFilters()">
+                    <select id="filterStatus" class="filter-select" onchange="applyFilters()">
+                        <option value="ALL">全部订单状态 (All Status)</option>
+                        <option value="PENDING_PAY">待支付 (PENDING_PAY)</option>
+                        <option value="PAID">已支付/待出票 (PAID)</option>
+                        <option value="PRINTED">已出纸打印 (PRINTED)</option>
+                        <option value="COMPLETED">已完成用餐 (COMPLETED)</option>
+                        <option value="CANCELLED">已取消/超时关单 (CANCELLED)</option>
+                    </select>
+                    <select id="filterPeriod" class="filter-select" onchange="applyFilters()">
+                        <option value="ALL">全部就餐时段 (All Periods)</option>
+                        <option value="BREAKFAST">早市 (07:00-10:00)</option>
+                        <option value="LUNCH">午市 (11:00-14:00)</option>
+                        <option value="DINNER">晚市 (17:00-21:00)</option>
+                        <option value="NIGHT">夜宵 (21:00-02:00)</option>
+                    </select>
+                </div>
+                <div>
+                    <button class="btn btn-secondary" onclick="exportOrdersCSV()">📥 导出结算 CSV</button>
+                </div>
+            </div>
+
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>订单编号 (Order SN)</th>
+                            <th>桌号 / 时段</th>
+                            <th>就餐人数</th>
+                            <th>菜品明细摘录</th>
+                            <th>结算公式 (原价 - 优惠 + 餐位)</th>
+                            <th>实付金额</th>
+                            <th>支付方式</th>
+                            <th>订单状态</th>
+                            <th>创建时间</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ordersTableBody">
+                        <!-- 由 JS 渲染 -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 页面 2: BI 多维报表看板 -->
+        <div id="tab-bi" class="tab-content" style="display: none;">
+            <div class="chart-grid">
+                <!-- 24小时时段营收与单量分布 -->
+                <div class="chart-card">
+                    <div class="chart-card-title">
+                        <span>🕒 各就餐时段营业额与订单量分布</span>
+                        <span style="font-size: 12px; color: var(--accent-blue);">早/午/晚/夜宵</span>
+                    </div>
+                    <div class="chart-wrapper">
+                        <canvas id="periodRevenueChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- 订单生命周期状态漏斗占比 -->
+                <div class="chart-card">
+                    <div class="chart-card-title">
+                        <span>🔄 订单全状态生命周期占比</span>
+                        <span style="font-size: 12px; color: var(--accent-purple);">流转健康度</span>
+                    </div>
+                    <div class="chart-wrapper">
+                        <canvas id="statusPieChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- 热销菜品贡献榜 -->
+                <div class="chart-card">
+                    <div class="chart-card-title">
+                        <span>🔥 菜品销售额与爆款销量排行 (Top Dishes)</span>
+                        <span style="font-size: 12px; color: var(--accent-amber);">销售构成</span>
+                    </div>
+                    <div class="chart-wrapper">
+                        <canvas id="topDishesChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- 支付渠道构成占比 -->
+                <div class="chart-card">
+                    <div class="chart-card-title">
+                        <span>💳 支付结算渠道分布</span>
+                        <span style="font-size: 12px; color: var(--accent-green);">微信 / 支付宝 / 会员 / 银联</span>
+                    </div>
+                    <div class="chart-wrapper">
+                        <canvas id="paymentChannelChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 页面 3: 财务结算与自动化对账 -->
+        <div id="tab-audit" class="tab-content" style="display: none;">
+            <div class="audit-card">
+                <div class="audit-header">
+                    <div>
+                        <h2 style="font-size: 18px; font-weight: 700; margin-bottom: 4px;">BI 报表实时自动化核验与平账引擎</h2>
+                        <p style="font-size: 13px; color: var(--text-secondary);">针对每张订单的价格快照逐笔累加，与 BI 统计大屏汇总字段进行 $\pm
+                            0.00$ 精确对账校验。</p>
+                    </div>
+                    <div class="audit-status-badge" id="auditBadge">
+                        <span>✔</span> 状态：100% 账实相符 (平账)
+                    </div>
+                </div>
+
+                <div class="audit-metric-grid">
+                    <div class="audit-box">
+                        <div class="audit-box-label">BI 大屏统计 GMV</div>
+                        <div class="audit-box-val" style="color: #60a5fa;" id="auditBiGmv">￥0.00</div>
+                    </div>
+                    <div class="audit-box">
+                        <div class="audit-box-label">订单明细底层实付求和</div>
+                        <div class="audit-box-val" style="color: #34d399;" id="auditRawGmv">￥0.00</div>
+                    </div>
+                    <div class="audit-box">
+                        <div class="audit-box-label">对账差额 (Discrepancy)</div>
+                        <div class="audit-box-val" style="color: #f9fafb;" id="auditDiff">￥0.00</div>
+                    </div>
+                    <div class="audit-box">
+                        <div class="audit-box-label">快照结算核算有效性</div>
+                        <div class="audit-box-val" style="color: #c084fc;" id="auditFormulaCheck">100% 验证通过</div>
+                    </div>
+                </div>
+
+                <div class="settle-calc-box">
+                    <h3 style="font-size: 14px; font-weight: 700; margin-bottom: 8px; color: #93c5fd;">📐
+                        餐饮中台结算公式与平账恒等式校验规则:</h3>
+                    <p style="font-size: 13px; color: #d1d5db; line-height: 1.6;">
+                        1. <strong>单单必核</strong>：每笔订单的实付金额必须满足 $\text{实付} = \max(0, \text{菜品原价} - \text{优惠券抵扣} +
+                        (\text{就餐人数} \times \text{餐位费单价}))$\n
+                        2. <strong>状态隔离</strong>：仅统计 <code>PAID</code>（已支付）、<code>PRINTED</code>（已出纸）和
+                        <code>COMPLETED</code>（已完成）为有效实收；<code>CANCELLED</code>（超时关单）全额剔除且库存必须回滚；<code>PENDING_PAY</code>
+                        仅作为在途应收，不计入净入账。\n
+                        3. <strong>渠道对账</strong>：微信支付合计 + 支付宝支付合计 + 会员余额支付合计 = 最终真实入账 GMV。
+                    </p>
+                </div>
+
+                <div style="display: flex; gap: 12px; margin-top: 20px; flex-wrap: wrap;">
+                    <button class="btn btn-primary" onclick="runBIAudit()">
+                        <span>⚡</span> 触发自动逐笔对账
+                    </button>
+                    <button class="btn btn-secondary" style="color: #f87171; border-color: rgba(239, 68, 68, 0.4);"
+                        onclick="injectDiscrepancyAnomaly()">
+                        <span>🧪</span> 模拟注入账面异常 (测试预警)
+                    </button>
+                    <button class="btn btn-secondary" style="color: #34d399; border-color: rgba(16, 185, 129, 0.4);"
+                        onclick="repairAllDiscrepancies()">
+                        <span>🛠️</span> 一键平账修复 (恢复一致)
+                    </button>
+                </div>
+
+                <div id="discrepancySection"
+                    style="display: none; margin-top: 20px; background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 10px; padding: 16px;">
+                    <h3
+                        style="font-size: 14px; font-weight: 700; color: #ef4444; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+                        <span>⚠️</span> <span>检测到的异常订单与对账差异单明细:</span>
+                    </h3>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>异常订单号</th>
+                                    <th>当前状态</th>
+                                    <th>理论应付 (原价-优惠+餐位)</th>
+                                    <th>实际快照实付</th>
+                                    <th>差额偏差</th>
+                                    <th>根因诊断说明</th>
+                                </tr>
+                            </thead>
+                            <tbody id="discrepancyTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 页面 4: 数据库与 SQL 查询 -->
+        <div id="tab-db" class="tab-content" style="display: none;">
+            <!-- 数据库元数据卡片 -->
+            <div
+                style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px; margin-bottom: 20px;">
+                <div class="audit-box">
+                    <div
+                        style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                        <span style="font-weight: 700; color: #60a5fa;">📁 SQLite 物理数据库文件</span>
+                        <span class="badge-positive">已落盘</span>
+                    </div>
+                    <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 4px;">文件路径: <code
+                            style="color: #93c5fd;">restaurant_orders.db</code></div>
+                    <div style="font-size: 12px; color: var(--text-muted);">引擎: SQLite 3 · 包含 t_order, t_order_item,
+                        t_bi_settlement</div>
+                </div>
+
+                <div class="audit-box">
+                    <div
+                        style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                        <span style="font-weight: 700; color: #34d399;">📄 MySQL 兼容 SQL 导出脚本</span>
+                        <span class="badge-positive">DDL + DML</span>
+                    </div>
+                    <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 4px;">脚本路径: <code
+                            style="color: #6ee7b7;">restaurant_orders.sql</code></div>
+                    <div style="font-size: 12px; color: var(--text-muted);">可直接导入本地已运行的 MySQL 8.0 / Navicat / DBeaver
+                    </div>
+                </div>
+
+                <div class="audit-box">
+                    <div
+                        style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                        <span style="font-weight: 700; color: #c084fc;">⚡ 终端命令行快速查询</span>
+                        <span class="badge-positive">开箱即用</span>
+                    </div>
+                    <div
+                        style="font-size: 12px; font-family: monospace; background: rgba(0,0,0,0.3); padding: 6px 10px; border-radius: 6px; color: #f9fafb;">
+                        sqlite3 restaurant_orders.db "SELECT * FROM t_order LIMIT 5;"
+                    </div>
+                </div>
+            </div>
+
+            <!-- 数据表切换与 SQL 执行器 -->
+            <div class="audit-card">
+                <div
+                    style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 16px;">
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                        <button class="btn btn-primary" id="btnTableOrder" onclick="showDbTable('t_order')">📋 t_order
+                            (订单主表 80行)</button>
+                        <button class="btn btn-secondary" id="btnTableItem" onclick="showDbTable('t_order_item')">🛒
+                            t_order_item (菜品明细表 158行)</button>
+                        <button class="btn btn-secondary" id="btnTableBi" onclick="showDbTable('t_bi_settlement')">📊
+                            t_bi_settlement (BI对账日结表)</button>
+                    </div>
+                    <div>
+                        <button class="btn btn-secondary" onclick="exportSqlScript()">📥 下载
+                            restaurant_orders.sql</button>
+                    </div>
+                </div>
+
+                <!-- 预设常用 BI 查询与网页端 SQL 执行控制台 -->
+                <div
+                    style="background: rgba(0,0,0,0.25); border: 1px solid var(--border-color); border-radius: 8px; padding: 16px; margin-bottom: 16px;">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 8px;">
+                        <div style="font-size: 13px; font-weight: 600; color: #93c5fd;">⚡ 页面在线 SQL 执行控制台
+                            (支持直接在页面运行或复制到终端):</div>
+                        <div style="font-size: 12px; color: var(--text-muted);">输入或点击预设 SQL 后，点击右下方【立即在页面执行该 SQL】</div>
+                    </div>
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px;">
+                        <button class="btn btn-secondary" style="padding: 5px 12px; font-size: 12px;"
+                            onclick="runPresetQuery('status_gmv')">① 各订单状态金额对账</button>
+                        <button class="btn btn-secondary" style="padding: 5px 12px; font-size: 12px;"
+                            onclick="runPresetQuery('period_revenue')">② 四大时段有效 GMV 汇总</button>
+                        <button class="btn btn-secondary" style="padding: 5px 12px; font-size: 12px;"
+                            onclick="runPresetQuery('top_dishes')">③ 爆款菜品销售额排行</button>
+                        <button class="btn btn-secondary" style="padding: 5px 12px; font-size: 12px;"
+                            onclick="runPresetQuery('pending_orders')">④ 待支付在途锁定单</button>
+                        <button class="btn btn-secondary" style="padding: 5px 12px; font-size: 12px;"
+                            onclick="runPresetQuery('all_orders')">⑤ 全部订单列表 (前50笔)</button>
+                    </div>
+                    <div style="position: relative;">
+                        <textarea id="sqlQueryInput"
+                            placeholder="输入自定义 SQL，例如: SELECT * FROM t_order WHERE status = 'PAID' LIMIT 10;"
+                            style="width: 100%; height: 65px; background: #0b0f19; color: #34d399; font-family: monospace; font-size: 13px; border: 1px solid var(--border-color); border-radius: 8px; padding: 10px; resize: vertical; outline: none;"></textarea>
+                    </div>
+                    <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px;">
+                        <button class="btn btn-secondary" style="font-size: 12px;" onclick="copyTerminalCommand()">📋
+                            复制为终端 sqlite3 执行命令</button>
+                        <button class="btn btn-primary"
+                            style="font-size: 12px; background: linear-gradient(135deg, #10b981, #059669);"
+                            onclick="executeCustomSql()">▶️ 立即在页面执行该 SQL</button>
+                    </div>
+                </div>
+
+                <!-- 数据表显示区 -->
+                <div class="table-container" style="max-height: 480px; overflow-y: auto;">
+                    <table id="dbResultTable">
+                        <thead id="dbResultThead"></thead>
+                        <tbody id="dbResultTbody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 订单详情抽屉 / 模态框 -->
+    <div class="modal-overlay" id="orderDetailModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div>
+                    <h3 style="font-size: 18px; font-weight: 700;" id="modalOrderSn">订单详情</h3>
+                    <p style="font-size: 12px; color: var(--text-secondary);" id="modalOrderTime"></p>
+                </div>
+                <button class="modal-close" onclick="closeModal('orderDetailModal')">✕</button>
+            </div>
+
+            <div style="margin-bottom: 16px;">
+                <h4 style="font-size: 14px; color: var(--text-secondary); margin-bottom: 8px;">🛒 已点菜品多规格/属性明细:</h4>
+                <div id="modalOrderItems"
+                    style="background: rgba(0,0,0,0.25); border-radius: 8px; padding: 12px; font-size: 13px; line-height: 1.8;">
+                </div>
+            </div>
+
+            <div class="order-detail-summary">
+                <div><strong>门店:</strong> <span id="modalStore"></span></div>
+                <div><strong>桌号:</strong> <span id="modalTable"></span></div>
+                <div><strong>就餐人数:</strong> <span id="modalPeople"></span></div>
+                <div><strong>就餐时段:</strong> <span id="modalPeriod"></span></div>
+                <div><strong>支付方式:</strong> <span id="modalPayChannel"></span></div>
+                <div><strong>当前状态:</strong> <span id="modalStatus"></span></div>
+            </div>
+
+            <div class="settle-calc-box">
+                <h4 style="font-size: 14px; font-weight: 700; color: #93c5fd; margin-bottom: 8px;">💰 金额快照核销链路:</h4>
+                <div style="font-size: 13px; line-height: 1.8;">
+                    <div>菜品原价合计: <span id="modalOriginalTotal"></span></div>
+                    <div>优惠券满减抵扣: <span id="modalDiscount"></span></div>
+                    <div>餐位费 (人数 × ￥3): <span id="modalTableware"></span></div>
+                    <div
+                        style="border-top: 1px dashed rgba(255,255,255,0.2); margin-top: 6px; padding-top: 6px; font-weight: 700; font-size: 15px; color: #34d399;">
+                        最终实付金额: <span id="modalActualPay"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 快速流转测试状态 -->
+            <div
+                style="margin-top: 16px; background: rgba(0,0,0,0.2); border: 1px solid var(--border-color); border-radius: 10px; padding: 14px;">
+                <div style="font-size: 13px; font-weight: 600; color: #d1d5db; margin-bottom: 8px;">🔄 模拟测试: 快速流转订单状态
+                    (即刻联动看板指标)</div>
+                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                    <button class="btn btn-secondary" style="padding: 5px 12px; font-size: 12px; color: #fbbf24;"
+                        onclick="changeOrderStatus(currentModalOrderSn, 'PENDING_PAY')">设为待支付</button>
+                    <button class="btn btn-primary" style="padding: 5px 12px; font-size: 12px;"
+                        onclick="changeOrderStatus(currentModalOrderSn, 'PAID')">设为已支付</button>
+                    <button class="btn btn-secondary"
+                        style="padding: 5px 12px; font-size: 12px; color: #c084fc; border-color: rgba(139, 92, 246, 0.4);"
+                        onclick="changeOrderStatus(currentModalOrderSn, 'PRINTED')">后厨出纸</button>
+                    <button class="btn btn-success" style="padding: 5px 12px; font-size: 12px;"
+                        onclick="changeOrderStatus(currentModalOrderSn, 'COMPLETED')">完成就餐</button>
+                    <button class="btn"
+                        style="padding: 5px 12px; font-size: 12px; background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.4);"
+                        onclick="changeOrderStatus(currentModalOrderSn, 'CANCELLED')">超时取消</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 模拟快速下单模态框 -->
+    <div class="modal-overlay" id="createOrderModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 style="font-size: 18px; font-weight: 700;">➕ 模拟快速下单 (用于验证 BI 动态刷新)</h3>
+                <button class="modal-close" onclick="closeModal('createOrderModal')">✕</button>
+            </div>
+            <form id="newOrderForm" onsubmit="handleCreateOrder(event)"
+                style="display: flex; flex-direction: column; gap: 14px; font-size: 13px;">
+                <div>
+                    <label style="display:block; margin-bottom: 4px; color: var(--text-secondary);">桌台编号</label>
+                    <select id="newTable" class="filter-select" style="width: 100%;">
+                        <option value="table_01">01号桌 (大厅)</option>
+                        <option value="table_06" selected>06号桌 (大厅)</option>
+                        <option value="table_08">08号桌 (包厢)</option>
+                        <option value="table_12">12号桌 (露台)</option>
+                    </select>
+                </div>
+                <div>
+                    <label style="display:block; margin-bottom: 4px; color: var(--text-secondary);">就餐时段</label>
+                    <select id="newPeriod" class="filter-select" style="width: 100%;">
+                        <option value="LUNCH" selected>午市 (11:00-14:00)</option>
+                        <option value="DINNER">晚市 (17:00-21:00)</option>
+                        <option value="NIGHT">夜宵 (21:00-02:00)</option>
+                        <option value="BREAKFAST">早市 (07:00-10:00)</option>
+                    </select>
+                </div>
+                <div>
+                    <label style="display:block; margin-bottom: 4px; color: var(--text-secondary);">选购套餐/菜品组合</label>
+                    <select id="newDishCombo" class="filter-select" style="width: 100%;">
+                        <option value="COMBO_FISH">招牌酸菜鱼(大份 108元) + 杨梅冰汤圆(18元) + 金针菇(5元)</option>
+                        <option value="COMBO_LAMB">限量特价手抓羊排(29.9元) + 冰粉(12元)</option>
+                        <option value="COMBO_FEAST">豪华4人聚会大餐 (原价 388元)</option>
+                    </select>
+                </div>
+                <div>
+                    <label style="display:block; margin-bottom: 4px; color: var(--text-secondary);">就餐人数 (餐位费:
+                        3元/位)</label>
+                    <input type="number" id="newPeopleCount" value="2" min="1" max="20" class="search-box"
+                        style="width: 100%;">
+                </div>
+                <div>
+                    <label style="display:block; margin-bottom: 4px; color: var(--text-secondary);">优惠券抵扣</label>
+                    <select id="newCoupon" class="filter-select" style="width: 100%;">
+                        <option value="0">无优惠券</option>
+                        <option value="20">满100减20券 (-20元)</option>
+                        <option value="50">满200减50券 (-50元)</option>
+                    </select>
+                </div>
+                <div>
+                    <label style="display:block; margin-bottom: 4px; color: var(--text-secondary);">初始状态</label>
+                    <select id="newStatus" class="filter-select" style="width: 100%;">
+                        <option value="PAID">已支付 (PAID)</option>
+                        <option value="PENDING_PAY">待支付 (PENDING_PAY)</option>
+                        <option value="PRINTED">已出纸 (PRINTED)</option>
+                    </select>
+                </div>
+                <div style="margin-top: 10px; display: flex; justify-content: flex-end; gap: 10px;">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('createOrderModal')">取消</button>
+                    <button type="submit" class="btn btn-primary">立即生成并注入看板</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // ======================================================================
+        // 1. 模拟数据集构建器 (包含60+条跨时段、跨状态真实订单数据)
+        // ======================================================================
+        const MEAL_PERIODS = {
+            BREAKFAST: "早市",
+            LUNCH: "午市",
+            DINNER: "晚市",
+            NIGHT: "夜宵"
+        };
+
+        const ORDER_STATUS_MAP = {
+            PENDING_PAY: { label: "待支付", class: "status-pending" },
+            PAID: { label: "已支付/待出纸", class: "status-paid" },
+            PRINTED: { label: "后厨已出纸", class: "status-printed" },
+            COMPLETED: { label: "已完成就餐", class: "status-completed" },
+            CANCELLED: { label: "超时已取消", class: "status-cancelled" }
+        };
+
+        const PAY_CHANNELS = ["微信支付 (WeChat Pay)", "支付宝 (Alipay)", "美团买单", "会员卡余额", "未支付"];
+
+        // 生成 65 笔逼真餐饮订单数据
+        let ordersData = [];
+
+        function generateMockOrders() {
+            const list = [];
+            const tables = ["table_01", "table_02", "table_03", "table_06", "table_08", "table_09", "table_12", "table_16", "table_18", "table_22"];
+            const dishesPool = [
+                { name: "招牌老坛酸菜鱼", base: 88, spec: "大份(+20)", delta: 20, extra: "加金针菇(+5)", extraFee: 5 },
+                { name: "限量特价手抓羊排", base: 29.9, spec: "标准份", delta: 0, extra: "配秘制孜然粉", extraFee: 0 },
+                { name: "季节限定杨梅冰汤圆", base: 16, spec: "标准碗", delta: 0, extra: "加小圆子(+2)", extraFee: 2 },
+                { name: "早市鲜虾小笼包", base: 24, spec: "一笼(6只)", delta: 0, extra: "加香醋", extraFee: 0 },
+                { name: "十三香绝味小龙虾", base: 138, spec: "中份", delta: 0, extra: "加面条(+6)", extraFee: 6 },
+                { name: "炭烤生蚝半打", base: 48, spec: "蒜蓉味", delta: 0, extra: "微辣", extraFee: 0 },
+                { name: "干锅千页豆腐", base: 36, spec: "标准", delta: 0, extra: "免葱", extraFee: 0 }
+            ];
+
+            const now = Date.now();
+
+            for (let i = 1; i <= 65; i++) {
+                const tableId = tables[Math.floor(Math.random() * tables.length)];
+                const people = Math.floor(Math.random() * 5) + 1; // 1~6人
+                const tablewareFee = people * 3.0; // 3元/人餐位费
+
+                // 随机选择 1~3 道菜
+                const itemCount = Math.floor(Math.random() * 3) + 1;
+                const chosenItems = [];
+                let originalTotal = 0;
+
+                for (let j = 0; j < itemCount; j++) {
+                    const dish = dishesPool[Math.floor(Math.random() * dishesPool.length)];
+                    const qty = Math.floor(Math.random() * 2) + 1;
+                    const itemPrice = dish.base + dish.delta + dish.extraFee;
+                    originalTotal += itemPrice * qty;
+                    chosenItems.push({
+                        name: dish.name,
+                        spec: dish.spec,
+                        extra: dish.extra,
+                        quantity: qty,
+                        price: itemPrice,
+                        subtotal: Math.round(itemPrice * qty * 100) / 100
+                    });
+                }
+
+                // 优惠券核销计算
+                let discount = 0;
+                let couponName = "无";
+                if (originalTotal >= 200 && Math.random() > 0.5) {
+                    discount = 50;
+                    couponName = "满200减50元券";
+                } else if (originalTotal >= 100 && Math.random() > 0.4) {
+                    discount = 20;
+                    couponName = "满100减20元券";
+                }
+
+                const actualPay = Math.max(0, Math.round((originalTotal - discount + tablewareFee) * 100) / 100);
+
+                // 状态分布
+                let status = "COMPLETED";
+                const rand = Math.random();
+                if (rand < 0.12) status = "PENDING_PAY";
+                else if (rand < 0.28) status = "PAID";
+                else if (rand < 0.45) status = "PRINTED";
+                else if (rand < 0.55) status = "CANCELLED";
+                else status = "COMPLETED";
+
+                // 时段分布
+                const periods = ["LUNCH", "DINNER", "LUNCH", "DINNER", "NIGHT", "BREAKFAST"];
+                const period = periods[Math.floor(Math.random() * periods.length)];
+
+                // 支付方式
+                let payChannel = "微信支付 (WeChat Pay)";
+                if (status === "PENDING_PAY") payChannel = "待支付";
+                else if (status === "CANCELLED") payChannel = "已取消(未扣款)";
+                else {
+                    const chRand = Math.random();
+                    if (chRand < 0.55) payChannel = "微信支付 (WeChat Pay)";
+                    else if (chRand < 0.85) payChannel = "支付宝 (Alipay)";
+                    else payChannel = "会员卡余额";
+                }
+
+                // 时间模拟（近 24 小时）
+                const timeOffset = Math.floor(Math.random() * 86400 * 1000);
+                const orderTime = new Date(now - timeOffset).toISOString().replace("T", " ").substring(0, 19);
+
+                list.push({
+                    order_sn: `ORD_${now - timeOffset}_${String(i).padStart(3, '0')}`,
+                    store_id: "store_888",
+                    table_id: tableId,
+                    period: period,
+                    people: people,
+                    items: chosenItems,
+                    original_total: Math.round(originalTotal * 100) / 100,
+                    discount: discount,
+                    coupon_name: couponName,
+                    tableware_fee: tablewareFee,
+                    actual_pay: actualPay,
+                    status: status,
+                    pay_channel: payChannel,
+                    created_at: orderTime
+                });
+            }
+
+            // 按创建时间倒序排列
+            list.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+            return list;
+        }
+
+        ordersData = generateMockOrders();
+
+        // ======================================================================
+        // 2. 表格渲染与数据筛选
+        // ======================================================================
+        function renderOrdersTable(data) {
+            const tbody = document.getElementById("ordersTableBody");
+            tbody.innerHTML = "";
+
+            if (data.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="10" style="text-align: center; padding: 40px; color: var(--text-muted);">暂无符合筛选条件的订单记录</td></tr>`;
+                return;
+            }
+
+            data.forEach(order => {
+                const tr = document.createElement("tr");
+                const st = ORDER_STATUS_MAP[order.status] || { label: order.status, class: "" };
+                const periodLabel = MEAL_PERIODS[order.period] || order.period;
+
+                // 菜品摘要简写
+                const itemsSummary = order.items.map(it => `${it.name}×${it.quantity}`).join("、");
+
+                tr.innerHTML = `
+                    <td><strong style="font-family: monospace; color: #93c5fd;">${order.order_sn}</strong></td>
+                    <td>
+                        <div><span style="font-weight: 600;">${order.table_id}</span></div>
+                        <div style="font-size: 11px; color: var(--text-muted);">${periodLabel}</div>
+                    </td>
+                    <td>${order.people} 位</td>
+                    <td style="max-width: 220px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${itemsSummary}">${itemsSummary}</td>
+                    <td>
+                        <div class="amount-formula">原价:￥${order.original_total.toFixed(2)} - 优惠:￥${order.discount.toFixed(2)} + 餐位:￥${order.tableware_fee.toFixed(2)}</div>
+                    </td>
+                    <td><span class="amount-highlight">￥${order.actual_pay.toFixed(2)}</span></td>
+                    <td><span style="font-size: 12px; color: var(--text-secondary);">${order.pay_channel}</span></td>
+                    <td>
+                        <span class="status-tag ${st.class}">
+                            <span class="status-dot"></span>
+                            <span>${st.label}</span>
+                        </span>
+                    </td>
+                    <td style="font-size: 12px; color: var(--text-muted); font-feature-settings: 'tnum';">${order.created_at}</td>
+                    <td>
+                        <button class="btn btn-secondary" style="padding: 4px 10px; font-size: 12px;" onclick="viewOrderDetail('${order.order_sn}')">查看核销详情</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function applyFilters() {
+            const keyword = document.getElementById("filterKeyword").value.trim().toLowerCase();
+            const status = document.getElementById("filterStatus").value;
+            const period = document.getElementById("filterPeriod").value;
+
+            const filtered = ordersData.filter(o => {
+                const matchKeyword = !keyword || o.order_sn.toLowerCase().includes(keyword) || o.table_id.toLowerCase().includes(keyword);
+                const matchStatus = (status === "ALL") || (o.status === status);
+                const matchPeriod = (period === "ALL") || (o.period === period);
+                return matchKeyword && matchStatus && matchPeriod;
+            });
+
+            renderOrdersTable(filtered);
+        }
+
+        // ======================================================================
+        // 3. KPI 统计指标实时计算
+        // ======================================================================
+        function updateKPICards() {
+            let totalGmv = 0;
+            let validOrdersCount = 0;
+            let pendingCount = 0;
+            let cancelledCount = 0;
+            let totalDiscounts = 0;
+
+            ordersData.forEach(o => {
+                totalDiscounts += o.discount;
+                if (o.status === "PAID" || o.status === "PRINTED" || o.status === "COMPLETED") {
+                    totalGmv += o.actual_pay;
+                    validOrdersCount++;
+                } else if (o.status === "PENDING_PAY") {
+                    pendingCount++;
+                } else if (o.status === "CANCELLED") {
+                    cancelledCount++;
+                }
+            });
+
+            const aov = validOrdersCount > 0 ? (totalGmv / validOrdersCount) : 0;
+            const cancelRatio = ordersData.length > 0 ? ((cancelledCount / ordersData.length) * 100).toFixed(1) : 0;
+
+            document.getElementById("kpiGmv").innerText = `￥${totalGmv.toFixed(2)}`;
+            document.getElementById("kpiValidOrders").innerText = validOrdersCount;
+            document.getElementById("kpiPendingCount").innerText = pendingCount;
+            document.getElementById("kpiAov").innerText = `￥${aov.toFixed(2)}`;
+            document.getElementById("kpiDiscounts").innerText = `￥${totalDiscounts.toFixed(2)}`;
+            document.getElementById("kpiCancelledCount").innerText = cancelledCount;
+            document.getElementById("kpiCancelRatio").innerText = `取消率 ${cancelRatio}%`;
+            document.getElementById("dataRefreshTimer").innerText = `数据已同步 · 共 ${ordersData.length} 笔订单`;
+        }
+
+        // ======================================================================
+        // 4. BI 图表组件初始化与更新 (Chart.js)
+        // ======================================================================
+        let charts = {};
+
+        function initOrUpdateCharts() {
+            // 1. 各餐段营业额统计
+            const periodGmv = { BREAKFAST: 0, LUNCH: 0, DINNER: 0, NIGHT: 0 };
+            const periodCount = { BREAKFAST: 0, LUNCH: 0, DINNER: 0, NIGHT: 0 };
+
+            // 2. 状态统计
+            const statusCount = { PENDING_PAY: 0, PAID: 0, PRINTED: 0, COMPLETED: 0, CANCELLED: 0 };
+
+            // 3. 菜品销售额
+            const dishSales = {};
+
+            // 4. 支付渠道统计
+            const channelSales = { "微信支付": 0, "支付宝": 0, "会员卡余额": 0, "其他": 0 };
+
+            ordersData.forEach(o => {
+                statusCount[o.status] = (statusCount[o.status] || 0) + 1;
+
+                if (o.status === "PAID" || o.status === "PRINTED" || o.status === "COMPLETED") {
+                    periodGmv[o.period] += o.actual_pay;
+                    periodCount[o.period] += 1;
+
+                    o.items.forEach(it => {
+                        dishSales[it.name] = (dishSales[it.name] || 0) + it.subtotal;
+                    });
+
+                    if (o.pay_channel.includes("微信")) channelSales["微信支付"] += o.actual_pay;
+                    else if (o.pay_channel.includes("支付宝")) channelSales["支付宝"] += o.actual_pay;
+                    else if (o.pay_channel.includes("会员")) channelSales["会员卡余额"] += o.actual_pay;
+                    else channelSales["其他"] += o.actual_pay;
+                }
+            });
+
+            // 销毁已有图表以重绘
+            if (charts.period) charts.period.destroy();
+            if (charts.status) charts.status.destroy();
+            if (charts.dishes) charts.dishes.destroy();
+            if (charts.channel) charts.channel.destroy();
+
+            // 图表 1: 餐段营业额分布
+            const ctxPeriod = document.getElementById("periodRevenueChart").getContext("2d");
+            charts.period = new Chart(ctxPeriod, {
+                type: "bar",
+                data: {
+                    labels: ["早市 (07-10点)", "午市 (11-14点)", "晚市 (17-21点)", "夜宵 (21-02点)"],
+                    datasets: [
+                        {
+                            label: "实收营业额 (元)",
+                            data: [periodGmv.BREAKFAST, periodGmv.LUNCH, periodGmv.DINNER, periodGmv.NIGHT],
+                            backgroundColor: "rgba(59, 130, 246, 0.75)",
+                            borderRadius: 6
+                        },
+                        {
+                            label: "订单单数",
+                            data: [periodCount.BREAKFAST, periodCount.LUNCH, periodCount.DINNER, periodCount.NIGHT],
+                            backgroundColor: "rgba(16, 185, 129, 0.75)",
+                            borderRadius: 6
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { labels: { color: "#9ca3af" } } },
+                    scales: {
+                        x: { ticks: { color: "#9ca3af" }, grid: { color: "rgba(55,65,81,0.3)" } },
+                        y: { ticks: { color: "#9ca3af" }, grid: { color: "rgba(55,65,81,0.3)" } }
+                    }
+                }
+            });
+
+            // 图表 2: 订单状态占比
+            const ctxStatus = document.getElementById("statusPieChart").getContext("2d");
+            charts.status = new Chart(ctxStatus, {
+                type: "doughnut",
+                data: {
+                    labels: ["已完成就餐", "后厨已出纸", "已支付待出纸", "待支付", "已超时取消"],
+                    datasets: [{
+                        data: [statusCount.COMPLETED, statusCount.PRINTED, statusCount.PAID, statusCount.PENDING_PAY, statusCount.CANCELLED],
+                        backgroundColor: ["#10b981", "#8b5cf6", "#3b82f6", "#f59e0b", "#ef4444"],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: "right", labels: { color: "#9ca3af" } } }
+                }
+            });
+
+            // 图表 3: 菜品销售额排行 TOP 5
+            const sortedDishes = Object.entries(dishSales).sort((a, b) => b[1] - a[1]).slice(0, 5);
+            const ctxDishes = document.getElementById("topDishesChart").getContext("2d");
+            charts.dishes = new Chart(ctxDishes, {
+                type: "bar",
+                data: {
+                    labels: sortedDishes.map(d => d[0]),
+                    datasets: [{
+                        label: "菜品总销售额 (元)",
+                        data: sortedDishes.map(d => Math.round(d[1])),
+                        backgroundColor: "rgba(245, 158, 11, 0.8)",
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { ticks: { color: "#9ca3af" }, grid: { color: "rgba(55,65,81,0.3)" } },
+                        y: { ticks: { color: "#9ca3af" }, grid: { display: false } }
+                    }
+                }
+            });
+
+            // 图表 4: 支付渠道分布
+            const ctxChannel = document.getElementById("paymentChannelChart").getContext("2d");
+            charts.channel = new Chart(ctxChannel, {
+                type: "pie",
+                data: {
+                    labels: Object.keys(channelSales),
+                    datasets: [{
+                        data: Object.values(channelSales).map(v => Math.round(v)),
+                        backgroundColor: ["#10b981", "#3b82f6", "#c084fc", "#6b7280"],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: "right", labels: { color: "#9ca3af" } } }
+                }
+            });
+        }
+
+        // ======================================================================
+        // 5. 财务结算与 BI 自动化对账核验
+        // ======================================================================
+        function runBIAudit() {
+            let sumFromLines = 0;
+            let invalidFormulaCount = 0;
+            const discrepancyList = [];
+
+            ordersData.forEach(o => {
+                // 仅统计已支付有效单入账
+                if (o.status === "PAID" || o.status === "PRINTED" || o.status === "COMPLETED") {
+                    sumFromLines += o.actual_pay;
+                }
+
+                // 校验快照数学公式: 实付 = max(0, 原价 - 优惠 + 餐位)
+                const expectedPay = Math.max(0, Math.round((o.original_total - o.discount + o.tableware_fee) * 100) / 100);
+                const formulaDiff = Math.abs(expectedPay - o.actual_pay);
+
+                if (formulaDiff > 0.01) {
+                    invalidFormulaCount++;
+                    discrepancyList.push({
+                        order_sn: o.order_sn,
+                        status: o.status,
+                        formula: `￥${o.original_total.toFixed(2)} - ￥${o.discount.toFixed(2)} + ￥${o.tableware_fee.toFixed(2)}`,
+                        expected: `￥${expectedPay.toFixed(2)}`,
+                        actual: `￥${o.actual_pay.toFixed(2)}`,
+                        diff: `${o.actual_pay > expectedPay ? '+' : ''}￥${(o.actual_pay - expectedPay).toFixed(2)}`,
+                        reason: o.actual_pay > expectedPay ? "实付金额超收 (高出理论快照)" : "实付金额少收 (低于理论快照)"
+                    });
+                }
+            });
+
+            // BI 汇总值 (直接读取 GMV 统计)
+            const biGmvText = document.getElementById("kpiGmv").innerText.replace("￥", "");
+            const biGmv = parseFloat(biGmvText);
+            const diff = Math.abs(biGmv - sumFromLines);
+
+            document.getElementById("auditBiGmv").innerText = `￥${biGmv.toFixed(2)}`;
+            document.getElementById("auditRawGmv").innerText = `￥${sumFromLines.toFixed(2)}`;
+            document.getElementById("auditDiff").innerText = `￥${diff.toFixed(2)}`;
+
+            const badge = document.getElementById("auditBadge");
+            const formulaBox = document.getElementById("auditFormulaCheck");
+            const discrepancySection = document.getElementById("discrepancySection");
+            const discrepancyTableBody = document.getElementById("discrepancyTableBody");
+
+            if (diff < 0.001 && invalidFormulaCount === 0) {
+                badge.className = "audit-status-badge";
+                badge.innerHTML = "<span>✔</span> 状态：100% 账实相符 (平账)";
+                badge.style.color = "#34d399";
+                badge.style.borderColor = "rgba(16, 185, 129, 0.4)";
+                badge.style.background = "rgba(16, 185, 129, 0.15)";
+                formulaBox.innerText = "100% 验证通过 (0笔异常)";
+                formulaBox.style.color = "#34d399";
+                discrepancySection.style.display = "none";
+            } else {
+                badge.className = "audit-status-badge";
+                badge.innerHTML = `<span>⚠️</span> 警告：检测到账面偏差 (差异订单: ${invalidFormulaCount}笔)`;
+                badge.style.color = "#ef4444";
+                badge.style.borderColor = "rgba(239, 68, 68, 0.5)";
+                badge.style.background = "rgba(239, 68, 68, 0.15)";
+                formulaBox.innerText = `异常笔数: ${invalidFormulaCount} (对账差额: ￥${diff.toFixed(2)})`;
+                formulaBox.style.color = "#ef4444";
+
+                // 渲染异常明细表
+                discrepancyTableBody.innerHTML = discrepancyList.map(item => `
+                    <tr>
+                        <td><strong style="font-family: monospace; color: #f87171;">${item.order_sn}</strong></td>
+                        <td><span class="status-tag status-${item.status.toLowerCase()}">${(ORDER_STATUS_MAP[item.status] || {}).label || item.status}</span></td>
+                        <td><span style="font-size: 11px; color: var(--text-muted);">${item.formula}</span></td>
+                        <td><strong style="color: #34d399;">${item.expected}</strong></td>
+                        <td><strong style="color: #f87171;">${item.actual}</strong></td>
+                        <td><span style="font-weight: 700; color: #fbbf24;">${item.diff}</span></td>
+                        <td style="color: #fca5a5;">${item.reason}</td>
+                    </tr>
+                `).join("");
+
+                discrepancySection.style.display = "block";
+            }
+
+            switchTab('audit');
+        }
+
+        // 模拟向有效订单注入账面异常 (供测试工程师验证 BI 对账预警)
+        function injectDiscrepancyAnomaly() {
+            const target = ordersData.find(o => o.status === "PAID" || o.status === "PRINTED" || o.status === "COMPLETED");
+            if (!target) {
+                alert("未找到有效订单，无法注入异常！");
+                return;
+            }
+
+            const anomalyOffset = 35.80;
+            target.actual_pay = Math.round((target.actual_pay + anomalyOffset) * 100) / 100;
+
+            // 重新刷新界面
+            renderOrdersTable(ordersData);
+            runBIAudit();
+
+            alert(`🧪 测试注入成功！\n已故意将订单 [${target.order_sn}] 实付篡改为 ￥${target.actual_pay.toFixed(2)} (偏差 +￥${anomalyOffset.toFixed(2)})\n系统已即刻捕获并标红差异单！`);
+        }
+
+        // 一键平账修复 (恢复所有订单的标准核算公式)
+        function repairAllDiscrepancies() {
+            ordersData.forEach(o => {
+                o.actual_pay = Math.max(0, Math.round((o.original_total - o.discount + o.tableware_fee) * 100) / 100);
+            });
+
+            updateKPICards();
+            renderOrdersTable(ordersData);
+            initOrUpdateCharts();
+            runBIAudit();
+
+            alert("🛠️ 平账修复成功！\n所有订单已按照餐饮中台结算公式校准，账实 100% 吻合。");
+        }
+
+        // ======================================================================
+        // 6. 查看核销详情抽屉与状态流转
+        // ======================================================================
+        let currentModalOrderSn = null;
+
+        function viewOrderDetail(orderSn) {
+            const order = ordersData.find(o => o.order_sn === orderSn);
+            if (!order) return;
+
+            currentModalOrderSn = orderSn;
+
+            document.getElementById("modalOrderSn").innerText = `订单明细: ${order.order_sn}`;
+            document.getElementById("modalOrderTime").innerText = `创建时间: ${order.created_at} · 门店: ${order.store_id}`;
+            document.getElementById("modalStore").innerText = order.store_id;
+            document.getElementById("modalTable").innerText = order.table_id;
+            document.getElementById("modalPeople").innerText = `${order.people} 位 (餐位费: ￥${order.tableware_fee.toFixed(2)})`;
+            document.getElementById("modalPeriod").innerText = MEAL_PERIODS[order.period] || order.period;
+            document.getElementById("modalPayChannel").innerText = order.pay_channel;
+            document.getElementById("modalStatus").innerText = (ORDER_STATUS_MAP[order.status] || {}).label || order.status;
+
+            document.getElementById("modalOriginalTotal").innerText = `￥${order.original_total.toFixed(2)}`;
+            document.getElementById("modalDiscount").innerText = `-￥${order.discount.toFixed(2)} (${order.coupon_name})`;
+            document.getElementById("modalTableware").innerText = `+￥${order.tableware_fee.toFixed(2)}`;
+            document.getElementById("modalActualPay").innerText = `￥${order.actual_pay.toFixed(2)}`;
+
+            // 菜品明细
+            const itemsContainer = document.getElementById("modalOrderItems");
+            itemsContainer.innerHTML = order.items.map((it, idx) => `
+                <div style="display: flex; justify-content: space-between; border-bottom: 1px dashed rgba(255,255,255,0.1); padding: 4px 0;">
+                    <span>${idx + 1}. <strong>${it.name}</strong> [${it.spec} | ${it.extra}] × ${it.quantity}</span>
+                    <span style="color: #93c5fd;">￥${it.subtotal.toFixed(2)}</span>
+                </div>
+            `).join("");
+
+            document.getElementById("orderDetailModal").style.display = "flex";
+        }
+
+        // 快速流转订单状态并触发全盘联动
+        function changeOrderStatus(orderSn, newStatus) {
+            const order = ordersData.find(o => o.order_sn === orderSn);
+            if (!order) return;
+
+            order.status = newStatus;
+            if (newStatus === "PAID" && (order.pay_channel.includes("未支付") || order.pay_channel.includes("待支付"))) {
+                order.pay_channel = "微信支付 (WeChat Pay)";
+            } else if (newStatus === "PENDING_PAY") {
+                order.pay_channel = "待支付";
+            } else if (newStatus === "CANCELLED") {
+                order.pay_channel = "已取消(未扣款)";
+            }
+
+            updateKPICards();
+            applyFilters();
+            initOrUpdateCharts();
+            viewOrderDetail(orderSn);
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).style.display = "none";
+        }
+
+        function openCreateOrderModal() {
+            document.getElementById("createOrderModal").style.display = "flex";
+        }
+
+        // ======================================================================
+        // 7. 快速模拟提单 (用于验证看板动态联动)
+        // ======================================================================
+        function handleCreateOrder(e) {
+            e.preventDefault();
+            const table = document.getElementById("newTable").value;
+            const period = document.getElementById("newPeriod").value;
+            const combo = document.getElementById("newDishCombo").value;
+            const people = parseInt(document.getElementById("newPeopleCount").value, 10) || 2;
+            const discount = parseFloat(document.getElementById("newCoupon").value) || 0;
+            const status = document.getElementById("newStatus").value;
+
+            let items = [];
+            let originalTotal = 0;
+
+            if (combo === "COMBO_FISH") {
+                items = [
+                    { name: "招牌老坛酸菜鱼", spec: "大份", extra: "加金针菇", quantity: 1, price: 113, subtotal: 113 },
+                    { name: "季节限定杨梅冰汤圆", spec: "标准碗", extra: "少糖去冰", quantity: 1, price: 18, subtotal: 18 }
+                ];
+                originalTotal = 131;
+            } else if (combo === "COMBO_LAMB") {
+                items = [
+                    { name: "限量特价手抓羊排", spec: "标配", extra: "原味", quantity: 1, price: 29.9, subtotal: 29.9 },
+                    { name: "红糖冰粉", spec: "标准", extra: "多加山楂", quantity: 1, price: 12, subtotal: 12 }
+                ];
+                originalTotal = 41.9;
+            } else {
+                items = [
+                    { name: "豪华聚会大餐组合", spec: "4人套餐", extra: "招牌硬菜齐聚", quantity: 1, price: 388, subtotal: 388 }
+                ];
+                originalTotal = 388;
+            }
+
+            const tablewareFee = people * 3.0;
+            const actualPay = Math.max(0, Math.round((originalTotal - discount + tablewareFee) * 100) / 100);
+            const now = new Date();
+            const nowStr = now.toISOString().replace("T", " ").substring(0, 19);
+
+            const newOrder = {
+                order_sn: `ORD_${Date.now()}_NEW`,
+                store_id: "store_888",
+                table_id: table,
+                period: period,
+                people: people,
+                items: items,
+                original_total: originalTotal,
+                discount: discount,
+                coupon_name: discount > 0 ? `满减券(-￥${discount})` : "无",
+                tableware_fee: tablewareFee,
+                actual_pay: actualPay,
+                status: status,
+                pay_channel: status === "PENDING_PAY" ? "待支付" : "微信支付 (WeChat Pay)",
+                created_at: nowStr
+            };
+
+            ordersData.unshift(newOrder); // 插入最前面
+            closeModal("createOrderModal");
+
+            // 重新计算与刷新
+            updateKPICards();
+            applyFilters();
+            initOrUpdateCharts();
+
+            alert(`✅ 订单 ${newOrder.order_sn} 创建成功！\n实付金额: ￥${actualPay.toFixed(2)}\n看板数据已实时联动更新。`);
+        }
+
+        // ======================================================================
+        // 8. 导出 CSV 功能
+        // ======================================================================
+        function exportOrdersCSV() {
+            let csv = "\uFEFF订单编号,桌号,就餐人数,时段,原价合计,优惠减免,餐位费,实付金额,支付渠道,状态,创建时间\n";
+            ordersData.forEach(o => {
+                csv += `"${o.order_sn}","${o.table_id}",${o.people},"${MEAL_PERIODS[o.period] || o.period}",${o.original_total},${o.discount},${o.tableware_fee},${o.actual_pay},"${o.pay_channel}","${ORDER_STATUS_MAP[o.status].label}","${o.created_at}"\n`;
+            });
+
+            const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = `餐饮结算对账明细_${new Date().toISOString().substring(0, 10)}.csv`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        // ======================================================================
+        // 9. 选项卡切换
+        // ======================================================================
+        function switchTab(tabId) {
+            document.querySelectorAll(".tab-btn").forEach((btn, idx) => {
+                btn.classList.remove("active");
+                if ((tabId === 'orders' && idx === 0) || (tabId === 'bi' && idx === 1) || (tabId === 'audit' && idx === 2) || (tabId === 'db' && idx === 3)) {
+                    btn.classList.add("active");
+                }
+            });
+
+            document.querySelectorAll(".tab-content").forEach(el => el.style.display = "none");
+            document.getElementById(`tab-${tabId}`).style.display = "block";
+
+            if (tabId === "bi") {
+                setTimeout(initOrUpdateCharts, 50);
+            } else if (tabId === "db") {
+                showDbTable(currentDbTable);
+            }
+        }
+
+        // ======================================================================
+        // 10. 数据库与 SQL 查询模拟器 (查看物理表数据与执行 SQL)
+        // ======================================================================
+        let currentDbTable = 't_order';
+
+        function showDbTable(tableName) {
+            currentDbTable = tableName;
+            document.getElementById("btnTableOrder").className = tableName === 't_order' ? "btn btn-primary" : "btn btn-secondary";
+            document.getElementById("btnTableItem").className = tableName === 't_order_item' ? "btn btn-primary" : "btn btn-secondary";
+            document.getElementById("btnTableBi").className = tableName === 't_bi_settlement' ? "btn btn-primary" : "btn btn-secondary";
+
+            const thead = document.getElementById("dbResultThead");
+            const tbody = document.getElementById("dbResultTbody");
+            const sqlArea = document.getElementById("sqlQueryInput");
+
+            if (tableName === 't_order') {
+                sqlArea.value = `SELECT order_sn, store_id, table_id, period, people_count, original_total, discount_amount, tableware_fee, actual_pay, status, pay_channel, created_at FROM t_order LIMIT 50;`;
+                thead.innerHTML = `
+                    <tr>
+                        <th>order_sn</th>
+                        <th>store_id</th>
+                        <th>table_id</th>
+                        <th>period</th>
+                        <th>people</th>
+                        <th>original_total</th>
+                        <th>discount</th>
+                        <th>tableware_fee</th>
+                        <th>actual_pay</th>
+                        <th>status</th>
+                        <th>pay_channel</th>
+                        <th>created_at</th>
+                    </tr>
+                `;
+                tbody.innerHTML = ordersData.map(o => `
+                    <tr>
+                        <td><code style="color: #93c5fd;">${o.order_sn}</code></td>
+                        <td>${o.store_id}</td>
+                        <td><strong>${o.table_id}</strong></td>
+                        <td>${o.period}</td>
+                        <td>${o.people}</td>
+                        <td>￥${o.original_total.toFixed(2)}</td>
+                        <td>-￥${o.discount.toFixed(2)}</td>
+                        <td>+￥${o.tableware_fee.toFixed(2)}</td>
+                        <td><strong style="color: #34d399;">￥${o.actual_pay.toFixed(2)}</strong></td>
+                        <td><span class="status-tag status-${o.status.toLowerCase()}">${o.status}</span></td>
+                        <td>${o.pay_channel}</td>
+                        <td style="font-size: 11px; color: var(--text-muted);">${o.created_at}</td>
+                    </tr>
+                `).join("");
+            } else if (tableName === 't_order_item') {
+                sqlArea.value = `SELECT item_id, order_sn, dish_id, dish_name, spec_name, extras, quantity, unit_price, subtotal FROM t_order_item LIMIT 50;`;
+                thead.innerHTML = `
+                    <tr>
+                        <th>item_id</th>
+                        <th>order_sn</th>
+                        <th>dish_name</th>
+                        <th>spec_name</th>
+                        <th>extras</th>
+                        <th>quantity</th>
+                        <th>unit_price</th>
+                        <th>subtotal</th>
+                    </tr>
+                `;
+                let itemId = 1;
+                let rowsHtml = "";
+                ordersData.forEach(o => {
+                    o.items.forEach(it => {
+                        rowsHtml += `
+                            <tr>
+                                <td>${itemId++}</td>
+                                <td><code style="color: #93c5fd;">${o.order_sn}</code></td>
+                                <td><strong>${it.name}</strong></td>
+                                <td>${it.spec}</td>
+                                <td>${it.extra || '-'}</td>
+                                <td>${it.quantity}</td>
+                                <td>￥${it.price.toFixed(2)}</td>
+                                <td><strong style="color: #fbbf24;">￥${it.subtotal.toFixed(2)}</strong></td>
+                            </tr>
+                        `;
+                    });
+                });
+                tbody.innerHTML = rowsHtml;
+            } else if (tableName === 't_bi_settlement') {
+                sqlArea.value = `SELECT stat_date, period, total_orders, valid_orders, gmv, total_discounts, cancelled_orders, aov FROM t_bi_settlement ORDER BY stat_date DESC;`;
+                thead.innerHTML = `
+                    <tr>
+                        <th>stat_date</th>
+                        <th>period</th>
+                        <th>total_orders</th>
+                        <th>valid_orders</th>
+                        <th>gmv (实际实收)</th>
+                        <th>total_discounts</th>
+                        <th>cancelled_orders</th>
+                        <th>aov (客单价)</th>
+                    </tr>
+                `;
+                const periods = ["BREAKFAST", "LUNCH", "DINNER", "NIGHT"];
+                const today = new Date().toISOString().substring(0, 10);
+                tbody.innerHTML = periods.map(p => {
+                    const periodOrders = ordersData.filter(o => o.period === p);
+                    const valid = periodOrders.filter(o => o.status === 'PAID' || o.status === 'PRINTED' || o.status === 'COMPLETED');
+                    const gmv = valid.reduce((sum, o) => sum + o.actual_pay, 0);
+                    const discounts = periodOrders.reduce((sum, o) => sum + o.discount, 0);
+                    const cancelled = periodOrders.filter(o => o.status === 'CANCELLED').length;
+                    const aov = valid.length > 0 ? (gmv / valid.length).toFixed(2) : '0.00';
+                    return `
+                        <tr>
+                            <td>${today}</td>
+                            <td><strong>${p} (${MEAL_PERIODS[p]})</strong></td>
+                            <td>${periodOrders.length}</td>
+                            <td><strong style="color: #34d399;">${valid.length}</strong></td>
+                            <td><strong style="color: #60a5fa;">￥${gmv.toFixed(2)}</strong></td>
+                            <td>￥${discounts.toFixed(2)}</td>
+                            <td><strong style="color: #f87171;">${cancelled}</strong></td>
+                            <td>￥${aov}</td>
+                        </tr>
+                    `;
+                }).join("");
+            }
+        }
+
+        function runPresetQuery(type) {
+            const sqlArea = document.getElementById("sqlQueryInput");
+            const thead = document.getElementById("dbResultThead");
+            const tbody = document.getElementById("dbResultTbody");
+
+            if (type === 'status_gmv') {
+                sqlArea.value = `SELECT status, COUNT(*) AS 订单数, SUM(actual_pay) AS 结算金额, AVG(actual_pay) AS 笔均金额\nFROM t_order\nGROUP BY status\nORDER BY 订单数 DESC;`;
+                thead.innerHTML = `<tr><th>status (订单状态)</th><th>订单笔数 (count)</th><th>结算金额合计 (sum)</th><th>笔均客单价 (avg)</th></tr>`;
+                const groups = {};
+                ordersData.forEach(o => {
+                    if (!groups[o.status]) groups[o.status] = { count: 0, sum: 0 };
+                    groups[o.status].count++;
+                    groups[o.status].sum += o.actual_pay;
+                });
+                tbody.innerHTML = Object.entries(groups).map(([st, data]) => `
+                    <tr>
+                        <td><span class="status-tag status-${st.toLowerCase()}">${st} (${(ORDER_STATUS_MAP[st] || {}).label})</span></td>
+                        <td>${data.count} 笔</td>
+                        <td><strong style="color: #34d399;">￥${data.sum.toFixed(2)}</strong></td>
+                        <td>￥${(data.sum / data.count).toFixed(2)}</td>
+                    </tr>
+                `).join("");
+            } else if (type === 'period_revenue') {
+                sqlArea.value = `SELECT period, COUNT(*) AS 总单量, SUM(CASE WHEN status IN ('PAID','PRINTED','COMPLETED') THEN 1 ELSE 0 END) AS 有效单数, SUM(CASE WHEN status IN ('PAID','PRINTED','COMPLETED') THEN actual_pay ELSE 0 END) AS 实际GMV\nFROM t_order\nGROUP BY period;`;
+                thead.innerHTML = `<tr><th>period (就餐时段)</th><th>总点单量</th><th>有效入账单数</th><th>实际营业额 (GMV)</th></tr>`;
+                const pGroups = { BREAKFAST: { total: 0, valid: 0, gmv: 0 }, LUNCH: { total: 0, valid: 0, gmv: 0 }, DINNER: { total: 0, valid: 0, gmv: 0 }, NIGHT: { total: 0, valid: 0, gmv: 0 } };
+                ordersData.forEach(o => {
+                    if (pGroups[o.period]) {
+                        pGroups[o.period].total++;
+                        if (o.status === 'PAID' || o.status === 'PRINTED' || o.status === 'COMPLETED') {
+                            pGroups[o.period].valid++;
+                            pGroups[o.period].gmv += o.actual_pay;
+                        }
+                    }
+                });
+                tbody.innerHTML = Object.entries(pGroups).map(([p, data]) => `
+                    <tr>
+                        <td><strong>${p} (${MEAL_PERIODS[p]})</strong></td>
+                        <td>${data.total} 笔</td>
+                        <td><strong style="color: #34d399;">${data.valid} 笔</strong></td>
+                        <td><strong style="color: #60a5fa;">￥${data.gmv.toFixed(2)}</strong></td>
+                    </tr>
+                `).join("");
+            } else if (type === 'top_dishes') {
+                sqlArea.value = `SELECT dish_name, SUM(quantity) AS 总销量, SUM(subtotal) AS 销售额合计\nFROM t_order_item\nGROUP BY dish_name\nORDER BY 销售额合计 DESC;`;
+                thead.innerHTML = `<tr><th>排行</th><th>dish_name (菜品名称)</th><th>总销量 (份)</th><th>销售额合计 (GMV)</th></tr>`;
+                const dishMap = {};
+                ordersData.forEach(o => {
+                    if (o.status === 'PAID' || o.status === 'PRINTED' || o.status === 'COMPLETED') {
+                        o.items.forEach(it => {
+                            if (!dishMap[it.name]) dishMap[it.name] = { qty: 0, total: 0 };
+                            dishMap[it.name].qty += it.quantity;
+                            dishMap[it.name].total += it.subtotal;
+                        });
+                    }
+                });
+                const sorted = Object.entries(dishMap).sort((a, b) => b[1].total - a[1].total);
+                tbody.innerHTML = sorted.map(([name, data], idx) => `
+                    <tr>
+                        <td><strong>#${idx + 1}</strong></td>
+                        <td><strong>${name}</strong></td>
+                        <td>${data.qty} 份</td>
+                        <td><strong style="color: #fbbf24;">￥${data.total.toFixed(2)}</strong></td>
+                    </tr>
+                `).join("");
+            } else if (type === 'pending_orders') {
+                sqlArea.value = `SELECT order_sn, table_id, people_count, original_total, discount_amount, actual_pay, created_at\nFROM t_order\nWHERE status = 'PENDING_PAY'\nORDER BY created_at DESC;`;
+                thead.innerHTML = `<tr><th>order_sn</th><th>桌号</th><th>原价合计</th><th>优惠券减免</th><th>应付实付</th><th>创建时间</th></tr>`;
+                const pendings = ordersData.filter(o => o.status === 'PENDING_PAY');
+                tbody.innerHTML = pendings.map(o => `
+                    <tr>
+                        <td><code style="color: #fbbf24;">${o.order_sn}</code></td>
+                        <td><strong>${o.table_id}</strong></td>
+                        <td>￥${o.original_total.toFixed(2)}</td>
+                        <td>-￥${o.discount.toFixed(2)}</td>
+                        <td><strong style="color: #fbbf24;">￥${o.actual_pay.toFixed(2)}</strong></td>
+                        <td>${o.created_at}</td>
+                    </tr>
+                `).join("");
+            } else if (type === 'all_orders') {
+                sqlArea.value = `SELECT order_sn, table_id, period, people_count, original_total, discount_amount, tableware_fee, actual_pay, status, pay_channel FROM t_order LIMIT 50;`;
+                showDbTable('t_order');
+            }
+        }
+
+        // 在页面中直接执行用户自定义 SQL 查询
+        function executeCustomSql() {
+            const rawSql = document.getElementById("sqlQueryInput").value.trim();
+            if (!rawSql) {
+                alert("请输入要执行的 SQL 查询语句！");
+                return;
+            }
+
+            const thead = document.getElementById("dbResultThead");
+            const tbody = document.getElementById("dbResultTbody");
+            const upperSql = rawSql.toUpperCase();
+
+            // 简单 SQL 解析分流
+            if (upperSql.includes("GROUP BY STATUS")) {
+                runPresetQuery("status_gmv");
+            } else if (upperSql.includes("GROUP BY PERIOD")) {
+                runPresetQuery("period_revenue");
+            } else if (upperSql.includes("GROUP BY DISH_NAME") || upperSql.includes("T_ORDER_ITEM")) {
+                if (upperSql.includes("GROUP BY")) {
+                    runPresetQuery("top_dishes");
+                } else {
+                    showDbTable("t_order_item");
+                }
+            } else if (upperSql.includes("T_BI_SETTLEMENT")) {
+                showDbTable("t_bi_settlement");
+            } else {
+                // 默认为 t_order 查询，支持 WHERE 条件过滤模拟
+                let filtered = [...ordersData];
+                if (upperSql.includes("STATUS = 'PAID'") || upperSql.includes("STATUS='PAID'")) {
+                    filtered = filtered.filter(o => o.status === 'PAID');
+                } else if (upperSql.includes("STATUS = 'PENDING_PAY'") || upperSql.includes("STATUS='PENDING_PAY'")) {
+                    filtered = filtered.filter(o => o.status === 'PENDING_PAY');
+                } else if (upperSql.includes("STATUS = 'CANCELLED'") || upperSql.includes("STATUS='CANCELLED'")) {
+                    filtered = filtered.filter(o => o.status === 'CANCELLED');
+                } else if (upperSql.includes("STATUS = 'COMPLETED'") || upperSql.includes("STATUS='COMPLETED'")) {
+                    filtered = filtered.filter(o => o.status === 'COMPLETED');
+                }
+
+                if (upperSql.includes("PERIOD = 'BREAKFAST'")) filtered = filtered.filter(o => o.period === 'BREAKFAST');
+                if (upperSql.includes("PERIOD = 'LUNCH'")) filtered = filtered.filter(o => o.period === 'LUNCH');
+                if (upperSql.includes("PERIOD = 'DINNER'")) filtered = filtered.filter(o => o.period === 'DINNER');
+                if (upperSql.includes("PERIOD = 'NIGHT'")) filtered = filtered.filter(o => o.period === 'NIGHT');
+
+                thead.innerHTML = `
+                    <tr>
+                        <th>order_sn</th>
+                        <th>table_id</th>
+                        <th>period</th>
+                        <th>people</th>
+                        <th>original_total</th>
+                        <th>discount</th>
+                        <th>tableware_fee</th>
+                        <th>actual_pay</th>
+                        <th>status</th>
+                        <th>pay_channel</th>
+                        <th>created_at</th>
+                    </tr>
+                `;
+
+                if (filtered.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="11" style="text-align: center; color: var(--text-muted); padding: 30px;">未查询到符合条件的记录</td></tr>`;
+                } else {
+                    tbody.innerHTML = filtered.slice(0, 50).map(o => `
+                        <tr>
+                            <td><code style="color: #93c5fd;">${o.order_sn}</code></td>
+                            <td><strong>${o.table_id}</strong></td>
+                            <td>${o.period}</td>
+                            <td>${o.people}</td>
+                            <td>￥${o.original_total.toFixed(2)}</td>
+                            <td>-￥${o.discount.toFixed(2)}</td>
+                            <td>+￥${o.tableware_fee.toFixed(2)}</td>
+                            <td><strong style="color: #34d399;">￥${o.actual_pay.toFixed(2)}</strong></td>
+                            <td><span class="status-tag status-${o.status.toLowerCase()}">${o.status}</span></td>
+                            <td>${o.pay_channel}</td>
+                            <td style="font-size: 11px; color: var(--text-muted);">${o.created_at}</td>
+                        </tr>
+                    `).join("");
+                }
+            }
+
+            alert("✅ 页面已成功执行该 SQL！查询结果已在下方表格刷新呈现。");
+        }
+
+        // 一键复制为 macOS 终端下直接可执行的 sqlite3 命令
+        function copyTerminalCommand() {
+            const rawSql = document.getElementById("sqlQueryInput").value.trim() || "SELECT order_sn, table_id, actual_pay, status FROM t_order LIMIT 10;";
+            const cleanSql = rawSql.replace(/\n/g, ' ').replace(/"/g, '\\"');
+            const cmd = `sqlite3 restaurant_orders.db -header -column "${cleanSql}"`;
+
+            navigator.clipboard.writeText(cmd).then(() => {
+                alert(`📋 已复制终端命令到剪贴板！\n\n命令如下：\n${cmd}\n\n您可直接在 VS Code 终端或系统终端(Terminal)中按 Command+V 粘贴执行！`);
+            }).catch(() => {
+                prompt("请手动复制以下终端命令：", cmd);
+            });
+        }
+
+        function exportSqlScript() {
+            // 直接触发下载生成的 SQL 脚本
+            const a = document.createElement("a");
+            a.href = "restaurant_orders.sql";
+            a.download = "restaurant_orders.sql";
+            a.click();
+        }
+
+        // 页面初始化
+        window.addEventListener("DOMContentLoaded", () => {
+            renderOrdersTable(ordersData);
+            updateKPICards();
+        });
+    </script>
+</body>
+
+</html>
